@@ -35,17 +35,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.google.android.gms.ads.MobileAds
 import com.niko.novaatlas.ui.theme.NovaAtlasTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var adManager: AdManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Init AdMob SDK le plus tot possible (avant super.onCreate = best practice)
+        MobileAds.initialize(this) {}
         super.onCreate(savedInstanceState)
+
+        adManager = AdManager(this)
+
         enableEdgeToEdge()
         setContent {
             NovaAtlasTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    RadioScreen(modifier = Modifier.padding(innerPadding))
+                    RadioScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        adManager = adManager,
+                    )
                 }
             }
         }
@@ -53,21 +65,19 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun RadioScreen(modifier: Modifier = Modifier) {
+fun RadioScreen(modifier: Modifier = Modifier, adManager: AdManager) {
     val context = LocalContext.current
+    val activity = context as? androidx.activity.ComponentActivity
     val player = remember { RadioPlayer(context) }
     val isPlaying by player.isPlaying.collectAsState()
 
-    // Charge les articles au mount
     var articles by remember { mutableStateOf<List<Article>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        // 1) Connect au RadioService (async, callback fire quand le controller est pret)
         player.connect()
-        // 2) Charge les articles en parallele
         scope.launch {
             try {
                 val response = ApiClient.api.getArticles(limit = 50)
@@ -90,7 +100,6 @@ fun RadioScreen(modifier: Modifier = Modifier) {
             .fillMaxSize()
             .padding(horizontal = 16.dp),
     ) {
-        // --- Section Player ---
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -106,7 +115,19 @@ fun RadioScreen(modifier: Modifier = Modifier) {
             )
             Button(
                 onClick = {
-                    if (isPlaying) player.pause() else player.play()
+                    // Si on coupe la radio, on ne montre PAS de pub (UX propre)
+                    if (isPlaying) {
+                        player.pause()
+                        return@Button
+                    }
+                    // Sinon on montre la pub (si prete + rate limit ok) PUIS on lance la radio
+                    if (activity != null) {
+                        adManager.showIfReady(activity) {
+                            player.play()
+                        }
+                    } else {
+                        player.play()
+                    }
                 }
             ) {
                 Text(text = if (isPlaying) "Pause Radio" else "Play Radio")
@@ -115,7 +136,6 @@ fun RadioScreen(modifier: Modifier = Modifier) {
 
         HorizontalDivider()
 
-        // --- Section News ---
         Box(modifier = Modifier.fillMaxSize()) {
             when {
                 isLoading -> CircularProgressIndicator(

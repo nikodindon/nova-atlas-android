@@ -24,9 +24,9 @@ android {
         buildConfigField("String", "SERVER_PORT_FLASK", "\"5055\"")
         buildConfigField("String", "SERVER_PORT_ICECAST", "\"8000\"")
         buildConfigField("String", "ICECAST_MOUNT", "\"/nova\"")
-        // AdMob test app ID (Google fournit des IDs de test, OBLIGATOIRE en dev).
-        // On remplacera par le vrai ID quand tu auras créé le compte AdMob.
-        manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
+        // AdMob App ID (compte niko - nikodindon@gmail.com).
+        // Reconnu auto en mode debug, sert pour la prod une fois l'app signee release.
+        manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-2776142788958553~6881853090"
     }
 
     buildTypes {

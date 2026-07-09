@@ -88,8 +88,8 @@ class AdManager(private val context: Context) {
 
     companion object {
         private const val TAG = "AdManager"
-        // ID de test Google (reconnu auto quand app en debug).
-        // Sera remplace par le vrai ID AdMob au Sprint C3.
-        private const val AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
+        // Ad Unit ID du compte niko (nikodindon@gmail.com), bloc radio_play_interstitial
+        // Cree le 2026-07-09 dans l'app Nova-Atlas.
+        private const val AD_UNIT_ID = "ca-app-pub-2776142788958553/2751036399"
     }
 }

@@ -271,7 +271,7 @@ private fun NewsFeedScreen() {
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(NovaBg0)) {
         // Header compact (style site)
         FeedHeader(
             isLoading = isLoading,
@@ -318,7 +318,7 @@ private fun NewsFeedScreen() {
                 }
                 else -> {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().background(NovaBg0),
                         contentPadding = PaddingValues(12.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
@@ -351,9 +351,37 @@ private fun FeedHeader(
             // Centre : (LIVE) (logo N) cote a cote
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isLoading) {
+                    // Pendant le chargement : on garde le point vert + LIVE,
+                    // mais on ajoute un mini spinner a cote pour montrer
+                    // qu'on rafraichit les articles
+                    val infinite = rememberInfiniteTransition(label = "live-pulse")
+                    val alpha by infinite.animateFloat(
+                        initialValue = 0.4f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(1200, easing = LinearEasing),
+                            repeatMode = RepeatMode.Reverse,
+                        ),
+                        label = "live-pulse-alpha",
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(NovaAccentGreen.copy(alpha = alpha))
+                    )
+                    Spacer(Modifier.width(5.dp))
+                    Text(
+                        text = "LIVE",
+                        color = NovaAccentGreen,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                    )
+                    Spacer(Modifier.width(8.dp))
                     CircularProgressIndicator(
-                        modifier = Modifier.size(14.dp),
-                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(10.dp),
+                        strokeWidth = 1.5.dp,
                         color = NovaTextMuted,
                     )
                 } else {
@@ -549,6 +577,7 @@ fun ArticleCard(article: Article) {
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = NovaBg3),
         shape = RoundedCornerShape(10.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),  // Pas d'ombre portee (sinon l'ombre grise mange le header)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

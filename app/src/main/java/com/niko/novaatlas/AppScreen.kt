@@ -131,30 +131,32 @@ fun AppScreen(
     val isPlaying by player.isPlaying.collectAsState()
     val isPremium by subscriptionManager.isPremium.collectAsState()
 
-    Scaffold(
-        // containerColor = fond noir Nova-Atlas.
-        // Important : sans ca, le Scaffold utilise un gris Material par defaut
-        // qui devient visible sous la status bar transparente.
-        containerColor = NovaBg0,
-        // Desactive les insets par defaut (status bar en haut, nav bar en bas)
-        // pour que notre contenu Compose aille jusqu'aux bords de l'ecran
-        // (mode edge-to-edge complet). On gere manuellement le padding du
-        // contenu si besoin.
-        contentWindowInsets = WindowInsets(0),
-        bottomBar = {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(NovaBg0)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            when (currentTab) {
+                Tab.Feed -> {
+                    Box(modifier = Modifier.weight(1f)) {
+                        NewsFeedScreen()
+                    }
+                }
+                Tab.Radio -> {
+                    Box(modifier = Modifier.weight(1f)) {
+                        RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
+                    }
+                }
+            }
+
+            // BottomNav en bas, en dehors de la zone de contenu
             BottomNav(
                 currentTab = currentTab,
                 onTabSelected = { currentTab = it },
                 isPlaying = isPlaying,
                 isPremium = isPremium,
             )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            when (currentTab) {
-                Tab.Feed -> NewsFeedScreen()
-                Tab.Radio -> RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
-            }
         }
     }
 }

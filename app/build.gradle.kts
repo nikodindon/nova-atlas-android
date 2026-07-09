@@ -52,16 +52,20 @@ android {
             buildConfigField("String", "SERVER_PROTOCOL", "\"http\"")
             buildConfigField("String", "SERVER_PORT_FLASK", "\"5055\"")
             buildConfigField("String", "SERVER_PORT_ICECAST", "\"8000\"")
-            buildConfigField("String", "ICECAST_MOUNT", "\"/nova\"")
-            buildConfigField("String", "RADIO_STREAM_URL", "\"http://192.168.1.22:8000/nova\"")
+            // Mount '/nova-android' : stream bulletins only (sans musique libre de droits
+            // pour publication Play Store). L'ancien mount '/nova' existe toujours mais
+            // contient de la musique perso (libre pour ton usage LAN, pas pour publier).
+            buildConfigField("String", "ICECAST_MOUNT", "\"/nova-android\"")
+            buildConfigField("String", "RADIO_STREAM_URL", "\"http://192.168.1.22:8000/nova-android\"")
         }
         release {
             buildConfigField("String", "SERVER_HOST", "\"nova-atlas.nikodindon.dpdns.org\"")
             buildConfigField("String", "SERVER_PROTOCOL", "\"https\"")
             buildConfigField("String", "SERVER_PORT_FLASK", "\"443\"")
             buildConfigField("String", "SERVER_PORT_ICECAST", "\"443\"")
-            buildConfigField("String", "ICECAST_MOUNT", "\"/nova\"")
-            buildConfigField("String", "RADIO_STREAM_URL", "\"https://nova-atlas-radio.nikodindon.dpdns.org/nova\"")
+            // Idem en prod : mount bulletins-only pour eviter les questions de droits
+            buildConfigField("String", "ICECAST_MOUNT", "\"/nova-android\"")
+            buildConfigField("String", "RADIO_STREAM_URL", "\"https://nova-atlas-radio.nikodindon.dpdns.org/nova-android\"")
 
             // Si une vraie keystore est dispo, on l'utilise. Sinon fallback debug
             // (pratique pour tester assembleRelease sans creds, mais INTERDIT pour

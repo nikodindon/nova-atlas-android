@@ -48,7 +48,7 @@ L'app demande les permissions suivantes :
 
 L'app communique uniquement avec :
 - Notre serveur : `http://192.168.1.22:5055` (Flask, votre LAN) — endpoints `/api/articles`, `/api/subscription/status`
-- Notre radio : `http://192.168.1.22:8000/nova` (Icecast, votre LAN)
+- Notre radio : `http://192.168.1.22:8000/nova-android` (Icecast, votre LAN, mount bulletins-only sans musique libre de droits)
 - Google AdMob (pour les pubs)
 
 En HTTPS pour la production publique (Sprint E3, à venir).

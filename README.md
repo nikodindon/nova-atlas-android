@@ -32,7 +32,7 @@ cd nova-atlas-android
 # Run > Run 'app' (sélectionner un device)
 ```
 
-L'app pointe par défaut vers `http://192.168.1.22:5055/` (Flask) et `http://192.168.1.22:8000/nova` (Icecast). Pour changer : éditer les `buildConfigField` dans `app/build.gradle.kts` (lignes 22-26) puis rebuild.
+L'app pointe par défaut vers `http://192.168.1.22:5055/` (Flask) et `http://192.168.1.22:8000/nova-android` (Icecast, mount bulletins-only sans musique libre de droits pour le Play Store). Pour changer : éditer les `buildConfigField` dans `app/build.gradle.kts` (lignes 22-26) puis rebuild.
 
 ## Architecture
 

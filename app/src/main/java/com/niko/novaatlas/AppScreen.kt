@@ -521,6 +521,16 @@ private fun CategoryFilterBar(
 
 @Composable
 fun ArticleCard(article: Article) {
+    val context = LocalContext.current
+    // Tap sur le titre = ouvre l'article dans le navigateur
+    val openArticle = {
+        val link = article.link
+        if (!link.isNullOrEmpty()) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+            runCatching { context.startActivity(intent) }
+                .onFailure { Log.w("ArticleCard", "Cannot open link: $link") }
+        }
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = NovaBg3),
@@ -563,17 +573,24 @@ fun ArticleCard(article: Article) {
                 }
             }
             Spacer(Modifier.height(6.dp))
+            // Titre : couleur plus claire (NovaTextPrimary, blanc), font semi-bold
+            // pour ressortir par rapport au resume (qui sera NovaTextDim, gris doux)
+            // Tap = ouvre l'article dans le navigateur
             Text(
                 text = article.title,
                 color = NovaTextPrimary,
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable(onClick = openArticle),
             )
             if (!article.summary.isNullOrBlank()) {
                 Spacer(Modifier.height(6.dp))
                 var expanded by remember(article.hash) { mutableStateOf(false) }
+                // Resume : couleur plus douce (NovaTextDim, gris moyen)
+                // Tap = expand/collapse le resume
                 Text(
                     text = article.summary,
-                    color = NovaTextSecondary,
+                    color = NovaTextDim,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = if (expanded) Int.MAX_VALUE else 3,
                     modifier = Modifier

@@ -37,19 +37,8 @@ object ApiClient {
         isLenient = true
     }
 
-    /**
-     * Construit l'URL de base selon le contexte reseau :
-     * - LAN (chez toi, 192.168.1.22) si NetworkDiscovery a detecte le LAN
-     * - Public (Cloudflare Tunnel) sinon (4G, autre WiFi, etc.)
-     */
-    private fun baseUrl(): String = if (NetworkDiscovery.useLocal.value) {
-        "http://${BuildConfig.LAN_HOST}:${BuildConfig.LAN_PORT_FLASK}/"
-    } else {
-        "https://${BuildConfig.PUBLIC_HOST}:${BuildConfig.PUBLIC_PORT_FLASK}/"
-    }
-
     val api: NovaAtlasApi = Retrofit.Builder()
-        .baseUrl(baseUrl())
+        .baseUrl("${BuildConfig.SERVER_PROTOCOL}://${BuildConfig.SERVER_HOST}:${BuildConfig.SERVER_PORT_FLASK}/")
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
         .create(NovaAtlasApi::class.java)

@@ -37,7 +37,7 @@ class RadioService : MediaSessionService() {
             .build()
             .apply { playWhenReady = false }
 
-        val streamUri = BuildConfig.PUBLIC_RADIO_URL
+        val streamUri = BuildConfig.RADIO_STREAM_URL
 
         // MediaMetadata permet au systeme d'afficher "Nova-Atlas - Web Radio"
         // dans la notif media + sur le lock screen

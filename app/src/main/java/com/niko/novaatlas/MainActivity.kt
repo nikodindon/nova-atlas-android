@@ -32,10 +32,6 @@ class MainActivity : ComponentActivity() {
         subscriptionManager = SubscriptionManager(this)
         player = RadioPlayer(this)
 
-        // Detection auto du contexte reseau (LAN ou public)
-        // Met a jour useLocal dans les 800ms, l'app utilise la bonne URL ensuite
-        NetworkDiscovery.probe()
-
         // Refresh premium au mount (en // du demarrage UI)
         subscriptionManager.refresh()
         // Connect au RadioService (en //, le service demarre quand l'UI le demande)

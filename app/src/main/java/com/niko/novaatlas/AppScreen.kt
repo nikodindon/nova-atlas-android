@@ -1,6 +1,14 @@
 package com.niko.novaatlas
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.ui.res.painterResource
+import com.niko.novaatlas.ui.theme.NovaAccentGreen
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -302,46 +310,56 @@ private fun NewsFeedScreen() {
 
 @Composable
 private fun FeedHeader(count: Int, total: Int, isLoading: Boolean) {
+    // Header : logo Nova-Atlas centre, indicateur live discret a droite.
+    // On garde un mini point vert (pulse) pour montrer que c'est du live,
+    // mais sans le texte 'EN DIRECT' (trop marketing) ni le compteur (trop technique).
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Pastille EN DIRECT (style site)
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(NovaAccentGreen)
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text = "EN DIRECT",
-            color = NovaAccentGreen,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(Modifier.width(12.dp))
-        Text(
-            text = "Fil d'actu",
-            color = NovaTextPrimary,
-            style = MaterialTheme.typography.titleMedium,
+        // Gauche : indicateur live minimal (point vert + spinner refresh si loading)
+        Box(modifier = Modifier.width(28.dp), contentAlignment = Alignment.Center) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(14.dp),
+                    strokeWidth = 2.dp,
+                    color = NovaTextMuted,
+                )
+            } else {
+                // Petit point vert qui pulse doucement
+                val infinite = rememberInfiniteTransition(label = "live-pulse")
+                val alpha by infinite.animateFloat(
+                    initialValue = 0.4f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1200, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse,
+                    ),
+                    label = "live-pulse-alpha",
+                )
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(NovaAccentGreen.copy(alpha = alpha))
+                )
+            }
+        }
+
+        // Centre : logo Nova-Atlas (le meme que l'icone de l'app)
+        // Utilise un spacer pondere de chaque cote pour centrer malgre l'indicateur a gauche
+        Spacer(Modifier.weight(1f))
+        Image(
+            painter = painterResource(R.drawable.ic_header_logo),
+            contentDescription = "Nova-Atlas",
+            modifier = Modifier.size(36.dp),
         )
         Spacer(Modifier.weight(1f))
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(14.dp),
-                strokeWidth = 2.dp,
-                color = NovaTextMuted,
-            )
-        } else if (total > 0) {
-            Text(
-                text = "$count / $total",
-                color = NovaTextMuted,
-                style = MaterialTheme.typography.labelSmall,
-            )
-        }
+
+        // Droite : reserve pour equilibrer (meme largeur que l'indicateur a gauche)
+        Box(modifier = Modifier.width(28.dp))
     }
 }
 

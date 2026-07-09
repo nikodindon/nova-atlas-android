@@ -1,43 +1,68 @@
 package com.niko.novaatlas
 
+import android.content.ComponentName
 import android.content.Context
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Wrap minimal autour d'ExoPlayer pour streamer la radio Nova-Atlas.
- * Stream URL = http://192.168.1.22:8000/nova (Icecast mount /nova)
+ * Client UI pour la radio Nova-Atlas.
+ * - Ne contient PAS d'ExoPlayer : il delegue tout au RadioService (background).
+ * - Connect au service via MediaController (pattern Google officiel).
+ * - Expose isPlaying comme StateFlow pour que Compose reactive proprement.
  *
- * Note pour plus tard : on rajoutera un MediaSessionService pour la notif
- * media + playback en background (Sprint B3).
+ * Le service tourne meme quand l'activity est fermee : la notif media permet
+ * a l'utilisateur de couper depuis la notif shade / lock screen.
  */
 class RadioPlayer(private val context: Context) {
 
-    private val player: ExoPlayer = ExoPlayer.Builder(context).build().apply {
-        // Auto-play dès qu'on a un MediaItem prêt
-        playWhenReady = false
+    private var controller: MediaController? = null
+
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+
+    /**
+     * Connect au RadioService. Idempotent : peut etre rappele sans probleme.
+     * A appeller depuis un LaunchedEffect(Unit) dans Compose.
+     */
+    fun connect(onReady: () -> Unit = {}) {
+        if (controller != null) {
+            onReady()
+            return
+        }
+        val token = SessionToken(context, ComponentName(context, RadioService::class.java))
+        val futureController = MediaController.Builder(context, token).buildAsync()
+        futureController.addListener(
+            {
+                controller = futureController.get()
+                _isPlaying.value = controller?.isPlaying == true
+                onReady()
+            },
+            MoreExecutors.directExecutor()
+        )
     }
 
-    private val streamUrl = "http://192.168.1.22:8000/nova"
-
     fun play() {
-        // setMediaItem est idempotent : si on re-tap Play après une pause, on évite de
-        // rebuffer le stream en re-setant le même item.
-        if (player.currentMediaItem == null) {
-            player.setMediaItem(MediaItem.fromUri(streamUrl))
-            player.prepare()
-        }
-        player.play()
+        controller?.playWhenReady = true
+        _isPlaying.value = true
     }
 
     fun pause() {
-        player.pause()
+        controller?.playWhenReady = false
+        _isPlaying.value = false
     }
 
+    /**
+     * Deconnect le controller. NE TUE PAS le service (la radio continue en
+     * background, c'est le but). Si l'utilisateur veut couper completement,
+     * il passe par la notif media.
+     */
     fun release() {
-        player.release()
+        controller?.release()
+        controller = null
     }
-
-    val isPlaying: Boolean
-        get() = player.isPlaying
 }

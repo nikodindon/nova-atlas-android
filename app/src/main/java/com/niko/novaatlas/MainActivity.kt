@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,15 +56,18 @@ class MainActivity : ComponentActivity() {
 fun RadioScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val player = remember { RadioPlayer(context) }
-    var isPlaying by remember { mutableStateOf(false) }
+    val isPlaying by player.isPlaying.collectAsState()
 
-    // Liste des articles : on load une fois au mount, on garde en state.
+    // Charge les articles au mount
     var articles by remember { mutableStateOf<List<Article>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
+        // 1) Connect au RadioService (async, callback fire quand le controller est pret)
+        player.connect()
+        // 2) Charge les articles en parallele
         scope.launch {
             try {
                 val response = ApiClient.api.getArticles(limit = 50)
@@ -102,7 +107,6 @@ fun RadioScreen(modifier: Modifier = Modifier) {
             Button(
                 onClick = {
                     if (isPlaying) player.pause() else player.play()
-                    isPlaying = !isPlaying
                 }
             ) {
                 Text(text = if (isPlaying) "Pause Radio" else "Play Radio")
@@ -130,7 +134,7 @@ fun RadioScreen(modifier: Modifier = Modifier) {
                 )
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                    contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     item {
@@ -153,19 +157,16 @@ fun RadioScreen(modifier: Modifier = Modifier) {
 fun ArticleCard(article: Article) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Bandeau catégorie + source
             Text(
                 text = "${article.category} • ${article.source ?: ""}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // Titre
             Text(
                 text = article.title,
                 style = MaterialTheme.typography.titleMedium
             )
-            // Résumé (si présent)
             if (!article.summary.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(

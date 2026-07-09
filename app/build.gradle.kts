@@ -48,24 +48,23 @@ android {
     // C'est 1 seul BuildConfig.SERVER_HOST que ApiClient et RadioPlayer lisent.
     buildTypes {
         debug {
-            buildConfigField("String", "SERVER_HOST", "\"192.168.1.22\"")
-            buildConfigField("String", "SERVER_PROTOCOL", "\"http\"")
-            buildConfigField("String", "SERVER_PORT_FLASK", "\"5055\"")
-            buildConfigField("String", "SERVER_PORT_ICECAST", "\"8000\"")
-            // Mount '/nova-android' : stream bulletins only (sans musique libre de droits
-            // pour publication Play Store). L'ancien mount '/nova' existe toujours mais
-            // contient de la musique perso (libre pour ton usage LAN, pas pour publier).
-            buildConfigField("String", "ICECAST_MOUNT", "\"/nova-android\"")
-            buildConfigField("String", "RADIO_STREAM_URL", "\"http://192.168.1.22:8000/nova-android\"")
+            // LAN : ton serveur a la maison (rapide quand t'es chez toi)
+            buildConfigField("String", "LAN_HOST", "\"192.168.1.22\"")
+            buildConfigField("String", "LAN_PORT_FLASK", "\"5055\"")
+            buildConfigField("String", "LAN_RADIO_URL", "\"http://192.168.1.22:8000/nova-android\"")
+            // Public : Cloudflare Tunnel (marche en 4G / depuis n'importe ou)
+            buildConfigField("String", "PUBLIC_HOST", "\"nova-atlas.nikodindon.dpdns.org\"")
+            buildConfigField("String", "PUBLIC_PORT_FLASK", "\"443\"")
+            buildConfigField("String", "PUBLIC_RADIO_URL", "\"https://nova-atlas-radio.nikodindon.dpdns.org/nova-android\"")
         }
         release {
-            buildConfigField("String", "SERVER_HOST", "\"nova-atlas.nikodindon.dpdns.org\"")
-            buildConfigField("String", "SERVER_PROTOCOL", "\"https\"")
-            buildConfigField("String", "SERVER_PORT_FLASK", "\"443\"")
-            buildConfigField("String", "SERVER_PORT_ICECAST", "\"443\"")
-            // Idem en prod : mount bulletins-only pour eviter les questions de droits
-            buildConfigField("String", "ICECAST_MOUNT", "\"/nova-android\"")
-            buildConfigField("String", "RADIO_STREAM_URL", "\"https://nova-atlas-radio.nikodindon.dpdns.org/nova-android\"")
+            // Meme config en release (le NetworkDiscovery choisit dynamiquement)
+            buildConfigField("String", "LAN_HOST", "\"192.168.1.22\"")
+            buildConfigField("String", "LAN_PORT_FLASK", "\"5055\"")
+            buildConfigField("String", "LAN_RADIO_URL", "\"http://192.168.1.22:8000/nova-android\"")
+            buildConfigField("String", "PUBLIC_HOST", "\"nova-atlas.nikodindon.dpdns.org\"")
+            buildConfigField("String", "PUBLIC_PORT_FLASK", "\"443\"")
+            buildConfigField("String", "PUBLIC_RADIO_URL", "\"https://nova-atlas-radio.nikodindon.dpdns.org/nova-android\"")
 
             // Si une vraie keystore est dispo, on l'utilise. Sinon fallback debug
             // (pratique pour tester assembleRelease sans creds, mais INTERDIT pour

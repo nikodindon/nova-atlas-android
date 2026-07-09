@@ -38,7 +38,7 @@ object ApiClient {
     }
 
     val api: NovaAtlasApi = Retrofit.Builder()
-        .baseUrl("http://192.168.1.22:5055/")
+        .baseUrl("${BuildConfig.SERVER_PROTOCOL}://${BuildConfig.SERVER_HOST}:${BuildConfig.SERVER_PORT_FLASK}/")
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
         .create(NovaAtlasApi::class.java)

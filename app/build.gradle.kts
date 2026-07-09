@@ -18,12 +18,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // IP du serveur Nova-Atlas sur le LAN. Changeable ici ou via shared prefs plus tard.
-        buildConfigField("String", "SERVER_HOST", "\"192.168.1.22\"")
-        // Flask tourne sur 5055, Icecast sur 8000 (mount /nova)
-        buildConfigField("String", "SERVER_PORT_FLASK", "\"5055\"")
-        buildConfigField("String", "SERVER_PORT_ICECAST", "\"8000\"")
-        buildConfigField("String", "ICECAST_MOUNT", "\"/nova\"")
         // AdMob App ID (compte niko - nikodindon@gmail.com).
         // Reconnu auto en mode debug, sert pour la prod une fois l'app signee release.
         manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-2776142788958553~6881853090"
@@ -48,8 +42,27 @@ android {
         }
     }
 
+    // URLs differentes selon le build type :
+    // - debug : LAN HTTP (192.168.1.22, ton serveur a la maison)
+    // - release : HTTPS prod via Cloudflare Tunnel (sous-domaine public)
+    // C'est 1 seul BuildConfig.SERVER_HOST que ApiClient et RadioPlayer lisent.
     buildTypes {
+        debug {
+            buildConfigField("String", "SERVER_HOST", "\"192.168.1.22\"")
+            buildConfigField("String", "SERVER_PROTOCOL", "\"http\"")
+            buildConfigField("String", "SERVER_PORT_FLASK", "\"5055\"")
+            buildConfigField("String", "SERVER_PORT_ICECAST", "\"8000\"")
+            buildConfigField("String", "ICECAST_MOUNT", "\"/nova\"")
+            buildConfigField("String", "RADIO_STREAM_URL", "\"http://192.168.1.22:8000/nova\"")
+        }
         release {
+            buildConfigField("String", "SERVER_HOST", "\"nova-atlas.nikodindon.dpdns.org\"")
+            buildConfigField("String", "SERVER_PROTOCOL", "\"https\"")
+            buildConfigField("String", "SERVER_PORT_FLASK", "\"443\"")
+            buildConfigField("String", "SERVER_PORT_ICECAST", "\"443\"")
+            buildConfigField("String", "ICECAST_MOUNT", "\"/nova\"")
+            buildConfigField("String", "RADIO_STREAM_URL", "\"https://nova-atlas-radio.nikodindon.dpdns.org/nova\"")
+
             // Si une vraie keystore est dispo, on l'utilise. Sinon fallback debug
             // (pratique pour tester assembleRelease sans creds, mais INTERDIT pour
             // publier sur le Play Store - il refusera un APK signe debug).

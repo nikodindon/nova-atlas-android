@@ -1,7 +1,12 @@
 package com.niko.novaatlas
 
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.sp
 import com.niko.novaatlas.ui.theme.NovaAccentGreen
+import com.niko.novaatlas.ui.theme.NovaAccentRed
+import com.niko.novaatlas.ui.theme.NovaBg2
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -19,6 +24,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -249,9 +255,8 @@ private fun NewsFeedScreen() {
     Column(modifier = Modifier.fillMaxSize()) {
         // Header compact (style site)
         FeedHeader(
-            count = filteredArticles.size,
-            total = articles.size,
             isLoading = isLoading,
+            breakingArticles = articles.take(8),  // Top 8 pour le ticker
         )
 
         // Filtres categories (chips multi-select cumulatifs)
@@ -309,57 +314,158 @@ private fun NewsFeedScreen() {
 }
 
 @Composable
-private fun FeedHeader(count: Int, total: Int, isLoading: Boolean) {
-    // Header : logo Nova-Atlas centre, indicateur live discret a droite.
-    // On garde un mini point vert (pulse) pour montrer que c'est du live,
-    // mais sans le texte 'EN DIRECT' (trop marketing) ni le compteur (trop technique).
+private fun FeedHeader(
+    isLoading: Boolean,
+    breakingArticles: List<Article>,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Rangée 1 : logo centre + indicateur LIVE a gauche
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Gauche : indicateur LIVE (point vert qui pulse + texte LIVE)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.width(60.dp),
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(14.dp),
+                        strokeWidth = 2.dp,
+                        color = NovaTextMuted,
+                    )
+                } else {
+                    val infinite = rememberInfiniteTransition(label = "live-pulse")
+                    val alpha by infinite.animateFloat(
+                        initialValue = 0.4f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(1200, easing = LinearEasing),
+                            repeatMode = RepeatMode.Reverse,
+                        ),
+                        label = "live-pulse-alpha",
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(NovaAccentGreen.copy(alpha = alpha))
+                    )
+                    Spacer(Modifier.width(5.dp))
+                    Text(
+                        text = "LIVE",
+                        color = NovaAccentGreen,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                    )
+                }
+            }
+
+            // Centre : logo Nova-Atlas
+            Spacer(Modifier.weight(1f))
+            Image(
+                painter = painterResource(R.drawable.ic_header_logo),
+                contentDescription = "Nova-Atlas",
+                modifier = Modifier.size(36.dp),
+            )
+            Spacer(Modifier.weight(1f))
+
+            // Droite : reserve pour equilibrer (meme largeur que l'indicateur a gauche)
+            Spacer(Modifier.width(60.dp))
+        }
+
+        // Rangée 2 : ticker breaking (defile horizontalement, style site)
+        if (breakingArticles.isNotEmpty()) {
+            BreakingTicker(articles = breakingArticles)
+        }
+    }
+}
+
+/**
+ * Ticker "BREAKING" : defile horizontalement en boucle, comme le site.
+ * Format : [BREAKING] | 🔥 11  🌍 Titre... · 🔥 6  ⚡ Autre titre... |
+ * Reprend les 5 premieres news comme items du ticker.
+ */
+@Composable
+private fun BreakingTicker(articles: List<Article>) {
+    val infinite = rememberInfiniteTransition(label = "ticker-scroll")
+    // Animation : translate le track de 0 a -50% (la moitie, puisqu'on duplique les items)
+    val offsetX by infinite.animateFloat(
+        initialValue = 0f,
+        targetValue = -1000f,  // Sera ajuste selon le contenu, mais 1000dp = bonne vitesse
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 30_000, easing = LinearEasing),
+        ),
+        label = "ticker-offset",
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .height(36.dp)
+            .background(NovaBg2),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Gauche : indicateur live minimal (point vert + spinner refresh si loading)
-        Box(modifier = Modifier.width(28.dp), contentAlignment = Alignment.Center) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(14.dp),
-                    strokeWidth = 2.dp,
-                    color = NovaTextMuted,
-                )
-            } else {
-                // Petit point vert qui pulse doucement
-                val infinite = rememberInfiniteTransition(label = "live-pulse")
-                val alpha by infinite.animateFloat(
-                    initialValue = 0.4f,
-                    targetValue = 1f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(1200, easing = LinearEasing),
-                        repeatMode = RepeatMode.Reverse,
-                    ),
-                    label = "live-pulse-alpha",
-                )
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(NovaAccentGreen.copy(alpha = alpha))
-                )
-            }
+        // Label "BREAKING" fixe a gauche
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .background(NovaAccentRed)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+            )
+            Spacer(Modifier.width(5.dp))
+            Text(
+                text = "BREAKING",
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+            )
         }
 
-        // Centre : logo Nova-Atlas (le meme que l'icone de l'app)
-        // Utilise un spacer pondere de chaque cote pour centrer malgre l'indicateur a gauche
-        Spacer(Modifier.weight(1f))
-        Image(
-            painter = painterResource(R.drawable.ic_header_logo),
-            contentDescription = "Nova-Atlas",
-            modifier = Modifier.size(36.dp),
-        )
-        Spacer(Modifier.weight(1f))
-
-        // Droite : reserve pour equilibrer (meme largeur que l'indicateur a gauche)
-        Box(modifier = Modifier.width(28.dp))
+        // Track qui defile
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clipToBounds(),
+        ) {
+            Row(
+                modifier = Modifier
+                    .graphicsLayer { translationX = offsetX }
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // On duplique les items 2x pour avoir une boucle fluide
+                (articles + articles).forEachIndexed { index, article ->
+                    val cat = CATEGORIES.firstOrNull { it.key == article.category }
+                    val catIcon = cat?.icon ?: "📰"
+                    val catLabel = cat?.label ?: article.category
+                    Text(
+                        text = "$catIcon $catLabel — ${article.title}",
+                        color = NovaTextPrimary,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                    )
+                    // Separateur entre items
+                    Text(
+                        text = "  ·  ",
+                        color = NovaTextMuted,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        }
     }
 }
 

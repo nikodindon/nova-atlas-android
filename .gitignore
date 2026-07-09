@@ -37,6 +37,9 @@ captures/
 *.iml
 .idea/
 
+# Profiling (Android Studio Profiler)
+*.hprof
+
 # Keystore files
 *.jks
 *.keystore

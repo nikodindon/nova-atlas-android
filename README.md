@@ -148,3 +148,70 @@ L'APK release doit faire **~6 Mo** (vs 23 Mo en debug = -74% via R8). Si c'est p
 - [ ] Sprint G (notifications) : "Breaking news" notif pour les cat importantes
 - [ ] Sprint H (offline) : cache local des news (Room), écoute radio offline
 - [ ] Sprint I (i18n) : EN/FR switchable
+
+## Publier sur le Play Store
+
+Une fois que t'as un compte Google Play Console (25$ one-time sur https://play.google.com/console), voici les 4 étapes pour publier :
+
+### 1. Créer la keystore (une seule fois, JAMAIS à refaire)
+
+```bash
+cd ~/AndroidStudioProjects/NovaAtlas
+mkdir -p keystore
+keytool -genkey -v -keystore keystore/nova-atlas-release.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -alias nova-atlas
+# Te demandera : mot de passe keystore + ton nom/orga/ville
+# => 2 mots de passe à noter (storePassword + keyPassword)
+```
+
+⚠️ Si tu perds cette keystore, tu peux plus jamais updater l'app sur le Play Store. **Note les 2 mots de passe** dans un password manager + **backup le fichier `.jks`** sur un disque externe.
+
+### 2. Set les variables d'environnement
+
+Ajoute à `~/.bashrc` ou `~/.zshrc` :
+
+```bash
+export RELEASE_STORE_PASSWORD="ton-store-password"
+export RELEASE_KEY_PASSWORD="ton-key-password"
+export RELEASE_KEY_ALIAS="nova-atlas"
+```
+
+Puis `source ~/.bashrc` pour les activer dans le terminal courant.
+
+### 3. Build l'AAB (Android App Bundle)
+
+```bash
+cd ~/AndroidStudioProjects/NovaAtlas
+./gradlew bundleRelease
+```
+
+L'AAB est dans `app/build/outputs/bundle/release/app-release.aab` (~11 Mo avec R8 shrink). C'est ce fichier que tu uploades sur la Play Console, **pas l'APK**.
+
+### 4. Upload sur la Play Console
+
+1. https://play.google.com/console → ton app → **Production** (ou "Tests internes" pour un pre-publish)
+2. **Create new release** → Upload l'AAB
+3. Remplir la fiche :
+   - **App name** : Nova-Atlas
+   - **Short description** : "AI-powered news feed + 24/7 web radio"
+   - **Full description** : (à toi d'écrire, ou inspire-toi du README)
+   - **Screenshots** : 2-8 captures d'écran (1080x1920 minimum)
+   - **App icon** : 512x512 PNG (utilise l'icône Nova-Atlas que t'as générée, redimensionnée)
+   - **Feature graphic** : 1024x500 PNG (optionnel mais recommandé)
+   - **Privacy policy URL** : `https://nikodindon.github.io/nova-atlas-android/`
+   - **Category** : News & Magazines
+   - **Content rating** : remplir le questionnaire (c'est rapide)
+4. **Pricing & distribution** : gratuit, tous pays
+5. **Submit for review**
+
+Le review Google prend 1-7 jours. Si pas de souci, l'app est live sur le Play Store.
+
+### 5. Pour updater plus tard (v1.0.1, v1.1.0, etc.)
+
+1. Bumper `versionCode` (1 → 2) ET `versionName` (1.0.0 → 1.0.1) dans `app/build.gradle.kts`
+2. `./gradlew bundleRelease`
+3. Upload le nouvel AAB sur la console (même package, même keystore)
+4. Review ~1 jour
+
+⚠️ **Ne JAMAIS changer le `applicationId`** entre 2 versions (= `com.niko.novaatlas` forever), sinon Google considère que c'est une nouvelle app.

@@ -77,6 +77,7 @@ import androidx.compose.ui.unit.sp
 import com.niko.novaatlas.ui.theme.NovaAccentGreen
 import com.niko.novaatlas.ui.theme.NovaAccentRed
 import com.niko.novaatlas.ui.theme.NovaAccentYellow
+import com.niko.novaatlas.ui.theme.NovaBg0
 import com.niko.novaatlas.ui.theme.NovaBg2
 import com.niko.novaatlas.ui.theme.NovaBg3
 import com.niko.novaatlas.ui.theme.NovaBg4
@@ -131,7 +132,10 @@ fun AppScreen(
     val isPremium by subscriptionManager.isPremium.collectAsState()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        // containerColor = fond noir Nova-Atlas.
+        // Important : sans ca, le Scaffold utilise un gris Material par defaut
+        // qui devient visible sous la status bar transparente.
+        containerColor = NovaBg0,
         // Desactive les insets par defaut (status bar en haut, nav bar en bas)
         // pour que notre contenu Compose aille jusqu'aux bords de l'ecran
         // (mode edge-to-edge complet). On gere manuellement le padding du

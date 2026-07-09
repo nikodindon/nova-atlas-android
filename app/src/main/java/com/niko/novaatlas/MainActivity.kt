@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import com.google.android.gms.ads.MobileAds
 import com.niko.novaatlas.ui.theme.NovaAtlasTheme
 
@@ -26,7 +27,24 @@ class MainActivity : ComponentActivity() {
         // Init AdMob SDK le plus tot possible
         MobileAds.initialize(this) {}
         super.onCreate(savedInstanceState)
+        // enableEdgeToEdge : l'app prend tout l'ecran, status/nav bar sont
+        // gerees par le contenu Compose (couleur de fond).
         enableEdgeToEdge()
+
+        // Force la status bar a etre completement transparente avec icones
+        // sombres, et SANS le label d'app Android en blanc (sur Android 12+,
+        // le systeme affiche le android:label dans la status bar par dessus
+        // notre app). On le desactive en mettant la status bar en "low profile"
+        // (sans texte, juste les icones systeme).
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.systemBarsBehavior =
+            androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        // Icons systeme en blanc (parce que notre fond est sombre),
+        // mais on force le mode "transparent" pour que rien d'autre n'apparaisse
+        insetsController.isAppearanceLightStatusBars = false
+        insetsController.isAppearanceLightNavigationBars = false
 
         adManager = AdManager(this)
         subscriptionManager = SubscriptionManager(this)

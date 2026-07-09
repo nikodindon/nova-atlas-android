@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Nova-Atlas - regles reseau par contexte.
+
+  But : autoriser HTTP en clair UNIQUEMENT pour le LAN local (dev/test),
+        forcer HTTPS partout ailleurs (prod = Cloudflare Tunnel).
+
+  Sans ca, on aurait 2 options casse-pieds :
+  1. usesCleartextTraffic="true" global : OK en dev, mais en prod
+     Google Play et Android 9+ affichent un warning "app non securisee"
+  2. Pas de cleartext du tout : casse le dev en LAN (192.168.1.22 refuse
+     de parler en HTTP)
+
+  Ce fichier = le meilleur des 2 mondes.
+
+  - base-config : default = HTTPS only (prod-safe)
+  - domain-config : exceptions pour le LAN
+-->
+<network-security-config>
+    <!-- Prod / monde entier : HTTPS only, pas de cleartext -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Dev : cleartext autorise pour le LAN de niko (192.168.0.0/16 = tout 192.168.x.x) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.1.22</domain>
+        <!-- Tu peux ajouter d'autres IPs ici si tu testes depuis
+             d'autres machines, ex: 192.168.1.32 (ton LLM host) -->
+    </domain-config>
+</network-security-config>

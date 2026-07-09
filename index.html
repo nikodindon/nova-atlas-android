@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova-Atlas — Privacy Policy</title>
+    <meta name="description" content="Politique de confidentialité de l'application Android Nova-Atlas. Quelles données sont collectées, pourquoi, et comment les supprimer.">
+    <style>
+        /* Palette Nova-Atlas (alignee sur l'app Android et le site Flask) */
+        :root {
+            --bg-0: #0A0A0F;
+            --bg-1: #111118;
+            --bg-2: #1A1A24;
+            --text-primary: #EDF0F7;
+            --text-secondary: #D0D7E8;
+            --text-muted: #8A90A8;
+            --accent-yellow: #C9A84C;
+            --accent-blue: #3B55E8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-0);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        /* Header avec logo N stylise */
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--bg-2);
+        }
+
+        .logo {
+            display: inline-block;
+            width: 64px;
+            height: 64px;
+            line-height: 64px;
+            background: var(--bg-2);
+            border-radius: 14px;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-yellow);
+            margin-bottom: 16px;
+            font-family: "SF Pro Display", -apple-system, sans-serif;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Sections */
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-yellow);
+            margin-top: 40px;
+            margin-bottom: 12px;
+            letter-spacing: 0.3px;
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        /* Tables (pour les permissions) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            background: var(--bg-1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--bg-2);
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--bg-2);
+            color: var(--accent-yellow);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        td:first-child {
+            font-family: "SF Mono", Menlo, monospace;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Listes */
+        ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        /* Liens */
+        a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--accent-blue);
+        }
+
+        a:hover {
+            border-bottom-style: solid;
+        }
+
+        /* Code inline */
+        code {
+            font-family: "SF Mono", Menlo, monospace;
+            background: var(--bg-2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 64px;
+            padding-top: 24px;
+            border-top: 1px solid var(--bg-2);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Badges (pour le sommaire) */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--bg-2);
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--accent-yellow);
+            margin-left: 6px;
+        }
+
+        /* Blockquote pour la version simplifiee */
+        blockquote {
+            background: var(--bg-1);
+            border-left: 3px solid var(--accent-yellow);
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 6px 6px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">N</div>
+            <h1>Nova-Atlas — Privacy Policy</h1>
+            <p class="subtitle">Last updated : 2026-07-09 &middot; Effective date : 2026-07-09</p>
+            <p class="subtitle">App : Nova-Atlas (com.niko.novaatlas)</p>
+        </header>
+
+        <h2>Résumé en français</h2>
+        <p>Nova-Atlas est une application Android compagnon du serveur Nova-Atlas (moteur de news IA + webradio 24/7). Cette politique de confidentialité explique quelles données l'app collecte et pourquoi.</p>
+
+        <h2>Données collectées</h2>
+
+        <h3>1. Identifiant d'appareil (ANDROID_ID)</h3>
+        <ul>
+            <li><strong>Quoi</strong> : <code>Settings.Secure.ANDROID_ID</code>, identifiant unique généré par Android pour notre app sur ton device</li>
+            <li><strong>Pourquoi</strong> : pour vérifier ton statut d'abonnement premium (le serveur a besoin de te reconnaître entre les sessions)</li>
+            <li><strong>Partagé</strong> : non. Envoyé uniquement à notre serveur (<code>https://nova-atlas.nikodindon.dpdns.org</code>)</li>
+            <li><strong>Stockage</strong> : pas stocké sur le serveur au-delà de <code>data/subscriptions.json</code> (gitignoré, accès restreint au serveur)</li>
+            <li><strong>Désactivation</strong> : tu peux utiliser l'app sans abonnement premium, dans ce cas l'identifiant n'est pas pertinent</li>
+        </ul>
+
+        <h3>2. Contenu de l'app</h3>
+        <p>L'app affiche des articles de news agrégés depuis des flux RSS publics et des bulletins radio générés par notre serveur. Aucun de ces contenus n'est collecté par nous — il est généré par notre pipeline et servi à l'app.</p>
+
+        <h3>3. Publicités (AdMob)</h3>
+        <ul>
+            <li><strong>Fournisseur</strong> : Google AdMob</li>
+            <li><strong>Politique de Google</strong> : <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a></li>
+            <li><strong>Données collectées par AdMob</strong> : identifiants publicitaires, IP approximative, type d'appareil, données d'usage (clics sur les pubs, etc.)</li>
+            <li><strong>Contrôle</strong> : tu peux réinitialiser ton identifiant publicitaire ou opt-out dans les paramètres Android : <em>Paramètres &gt; Google &gt; Publicités</em></li>
+        </ul>
+
+        <h2>Permissions de l'app</h2>
+        <p>L'app demande les permissions suivantes :</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Permission</th>
+                    <th>Pourquoi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>INTERNET</td>
+                    <td>Télécharger les articles, streamer la radio, charger les pubs</td>
+                </tr>
+                <tr>
+                    <td>ACCESS_NETWORK_STATE</td>
+                    <td>Détecter si tu es online avant de fetch</td>
+                </tr>
+                <tr>
+                    <td>WAKE_LOCK</td>
+                    <td>Empêcher le téléphone de s'endormir pendant la radio</td>
+                </tr>
+                <tr>
+                    <td>FOREGROUND_SERVICE</td>
+                    <td>Faire tourner la radio en background (notif media)</td>
+                </tr>
+                <tr>
+                    <td>FOREGROUND_SERVICE_MEDIA_PLAYBACK</td>
+                    <td>Idem, spécifique Android 14+</td>
+                </tr>
+                <tr>
+                    <td>POST_NOTIFICATIONS</td>
+                    <td>Afficher la notif media (Android 13+)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><strong>On ne demande PAS</strong> : localisation, contacts, fichiers, caméra, micro, Bluetooth, etc.</p>
+
+        <h2>Réseau</h2>
+        <p>L'app communique uniquement avec :</p>
+        <ul>
+            <li>Notre serveur : <code>https://nova-atlas.nikodindon.dpdns.org</code> (Flask, via Cloudflare Tunnel) — endpoints <code>/api/articles</code>, <code>/api/subscription/status</code></li>
+            <li>Notre radio : <code>https://nova-atlas-radio.nikodindon.dpdns.org/nova</code> (Icecast, via Cloudflare Tunnel)</li>
+            <li>Google AdMob (pour les pubs)</li>
+        </ul>
+
+        <h2>Stockage local</h2>
+        <ul>
+            <li><strong>Cache des articles</strong> : non persisté pour l'instant (Sprint H à venir avec Room)</li>
+            <li><strong>Préférences UI</strong> : pas de préférences pour l'instant (Sprint F à venir pour le premium UI)</li>
+            <li><strong>Token premium</strong> : pas de token (le check est stateless, le serveur garde le mapping device_id → premium)</li>
+        </ul>
+
+        <h2>Tes droits (RGPD / CCPA)</h2>
+        <ul>
+            <li><strong>Accès</strong> : tu peux me demander ce que j'ai sur toi (le <code>device_id</code> associé à un premium)</li>
+            <li><strong>Suppression</strong> : tu peux me demander de supprimer l'entrée <code>data/subscriptions.json</code> correspondant à ton device</li>
+            <li><strong>Portabilité</strong> : pas applicable (pas de données personnelles au-delà de l'identifiant)</li>
+            <li><strong>Contact</strong> : <a href="mailto:nikodindon@gmail.com">nikodindon@gmail.com</a></li>
+        </ul>
+
+        <h2>Sécurité</h2>
+        <p>Toutes les communications entre l'app et notre serveur passent par HTTPS (Cloudflare Tunnel). L'app ne stocke aucune donnée personnelle sur l'appareil. L'identifiant d'appareil (<code>ANDROID_ID</code>) est un identifiant opaque généré par Android, pas un identifiant personnel au sens RGPD.</p>
+
+        <h2>Modifications de cette politique</h2>
+        <p>Toute modification sera annoncée dans un commit du <a href="https://github.com/nikodindon/nova-atlas-android" target="_blank" rel="noopener">repo GitHub nova-atlas-android</a> avec un changelog. La date "Last updated" en haut sera mise à jour.</p>
+
+        <h2>Pour le Play Store <span class="badge">résumé</span></h2>
+        <blockquote>
+            Nova-Atlas displays news articles and a radio stream from our server. We collect a device identifier (ANDROID_ID) to manage your premium subscription. Google AdMob may collect advertising identifiers per their privacy policy. We do not collect location, contacts, files, or any other personal data.
+        </blockquote>
+
+        <footer>
+            <p>Nova-Atlas &middot; Made by <a href="mailto:nikodindon@gmail.com">nikodindon</a></p>
+            <p style="margin-top: 8px; opacity: 0.6;">This page is hosted on GitHub Pages. Source: <a href="https://github.com/nikodindon/nova-atlas-android">nikodindon/nova-atlas-android</a></p>
+        </footer>
+    </div>
+</body>
+</html>

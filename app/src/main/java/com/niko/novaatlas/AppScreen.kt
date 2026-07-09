@@ -133,34 +133,33 @@ fun AppScreen(
     val isPlaying by player.isPlaying.collectAsState()
     val isPremium by subscriptionManager.isPremium.collectAsState()
 
-    // Box racine : fond noir garanti, prend tout l'ecran (status bar incluse).
-    // Le contenu va jusqu'aux bords (edge-to-edge), et la BottomNav est
-    // ancree en bas par-dessus le contenu.
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NovaBg0)
-    ) {
-        // Zone contenu : laisse la place pour la BottomNav en bas
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp)  // Hauteur approx de la BottomNav
-        ) {
-            when (currentTab) {
-                Tab.Feed -> NewsFeedScreen()
-                Tab.Radio -> RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
-            }
-        }
-
-        // BottomNav : fixee en bas, par-dessus le contenu
-        Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+    // Scaffold : gere les insets (status bar + nav bar) et la BottomBar.
+    // containerColor = fond noir Nova-Atlas (sinon le Scaffold utilise un
+    // gris Material par defaut qui apparait sous la status bar transparente).
+    Scaffold(
+        containerColor = NovaBg0,
+        bottomBar = {
             BottomNav(
                 currentTab = currentTab,
                 onTabSelected = { currentTab = it },
                 isPlaying = isPlaying,
                 isPremium = isPremium,
             )
+        }
+    ) { padding ->
+        // Box de contenu : prend la zone restante (entre status bar et
+        // BottomNav) avec un fond noir garanti pour eviter toute bande
+        // grise visible
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(NovaBg0)
+        ) {
+            when (currentTab) {
+                Tab.Feed -> NewsFeedScreen()
+                Tab.Radio -> RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
+            }
         }
     }
 }
@@ -294,7 +293,11 @@ private fun NewsFeedScreen() {
         HorizontalDivider(color = NovaBg4)
 
         // Liste filtree
-        Box(modifier = Modifier.fillMaxSize()) {
+        // weight(1f) = prend seulement l'espace RESTANT apres le header
+        // et la CategoryFilterBar. Sans le weight, le fillMaxSize prend
+        // tout l'espace et le FeedHeader/CategoryFilterBar sont caches
+        // derriere (z-order).
+        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             when {
                 errorMsg != null && articles.isEmpty() -> {
                     Text(
@@ -318,7 +321,7 @@ private fun NewsFeedScreen() {
                 }
                 else -> {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().background(NovaBg0),
+                        modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(12.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {

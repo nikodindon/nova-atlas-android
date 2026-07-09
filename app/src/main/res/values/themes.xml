@@ -4,6 +4,10 @@
     <!-- Theme principal de l'app (apres le splash, applique par Compose via NovaAtlasTheme).
          On laisse le parent Material standard, Compose override tout. -->
     <style name="Theme.NovaAtlas" parent="android:Theme.Material.NoActionBar">
+        <!-- Pas de titre natif Android en haut (sinon affiche "NovaAtlas" en blanc
+             par-dessus notre header Compose) -->
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
         <item name="android:statusBarColor">@color/nova_bg_0</item>
         <item name="android:navigationBarColor">@color/nova_bg_0</item>
         <item name="android:windowBackground">@color/nova_bg_0</item>

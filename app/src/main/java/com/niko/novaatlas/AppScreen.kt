@@ -1,20 +1,18 @@
 package com.niko.novaatlas
 
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.sp
-import com.niko.novaatlas.ui.theme.NovaAccentGreen
-import com.niko.novaatlas.ui.theme.NovaAccentRed
-import com.niko.novaatlas.ui.theme.NovaBg2
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,9 +20,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,6 +40,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -70,10 +69,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.niko.novaatlas.ui.theme.NovaAccentGreen
+import com.niko.novaatlas.ui.theme.NovaAccentRed
 import com.niko.novaatlas.ui.theme.NovaAccentYellow
+import com.niko.novaatlas.ui.theme.NovaBg2
 import com.niko.novaatlas.ui.theme.NovaBg3
 import com.niko.novaatlas.ui.theme.NovaBg4
 import com.niko.novaatlas.ui.theme.NovaTextDim
@@ -319,18 +322,18 @@ private fun FeedHeader(
     breakingArticles: List<Article>,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Rangée 1 : logo centre + indicateur LIVE a gauche
+        // Rangée 1 : indicateur LIVE a gauche + logo N a droite du LIVE, le tout centre
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Gauche : indicateur LIVE (point vert qui pulse + texte LIVE)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.width(60.dp),
-            ) {
+            // Gauche : reserve equilibre (meme largeur que la droite)
+            Spacer(Modifier.weight(1f))
+
+            // Centre : (LIVE) (logo N) cote a cote
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
@@ -363,19 +366,16 @@ private fun FeedHeader(
                         letterSpacing = 1.sp,
                     )
                 }
+                Spacer(Modifier.width(10.dp))
+                Image(
+                    painter = painterResource(R.drawable.ic_header_logo),
+                    contentDescription = "Nova-Atlas",
+                    modifier = Modifier.size(32.dp),
+                )
             }
 
-            // Centre : logo Nova-Atlas
+            // Droite : reserve equilibre
             Spacer(Modifier.weight(1f))
-            Image(
-                painter = painterResource(R.drawable.ic_header_logo),
-                contentDescription = "Nova-Atlas",
-                modifier = Modifier.size(36.dp),
-            )
-            Spacer(Modifier.weight(1f))
-
-            // Droite : reserve pour equilibrer (meme largeur que l'indicateur a gauche)
-            Spacer(Modifier.width(60.dp))
         }
 
         // Rangée 2 : ticker breaking (defile horizontalement, style site)
@@ -386,28 +386,53 @@ private fun FeedHeader(
 }
 
 /**
- * Ticker "BREAKING" : defile horizontalement en boucle, comme le site.
- * Format : [BREAKING] | 🔥 11  🌍 Titre... · 🔥 6  ⚡ Autre titre... |
- * Reprend les 5 premieres news comme items du ticker.
+ * Ticker "BREAKING" : un seul titre a la fois, defile horizontalement.
+ * Tap sur le ticker = ouvre l'article dans le navigateur.
+ * Format : [BREAKING] | 🌍  France - Maroc en direct : suivez le premier...
+ *
+ * - basicMarquee() = composant natif Android pour le texte defilant (smooth,
+ *   s'arrete quand on quitte l'app, etc.)
+ * - La rotation entre les news est geree par un LaunchedEffect qui change
+ *   l'index toutes les 8s (le temps que le titre ait fini de defiler)
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BreakingTicker(articles: List<Article>) {
-    val infinite = rememberInfiniteTransition(label = "ticker-scroll")
-    // Animation : translate le track de 0 a -50% (la moitie, puisqu'on duplique les items)
-    val offsetX by infinite.animateFloat(
-        initialValue = 0f,
-        targetValue = -1000f,  // Sera ajuste selon le contenu, mais 1000dp = bonne vitesse
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 30_000, easing = LinearEasing),
-        ),
-        label = "ticker-offset",
-    )
+    val context = LocalContext.current
+    var currentIndex by remember { mutableStateOf(0) }
+
+    // Rotation auto : change de news toutes les 8s (= le temps que le titre
+    // ait fini de defiler en basicMarquee)
+    LaunchedEffect(articles.size) {
+        if (articles.size > 1) {
+            while (true) {
+                delay(8_000)
+                currentIndex = (currentIndex + 1) % articles.size
+            }
+        }
+    }
+
+    // L'article courant (protege si la liste change entre 2 frames)
+    val current = articles.getOrNull(currentIndex) ?: articles.firstOrNull()
+    if (current == null) return
+
+    val cat = CATEGORIES.firstOrNull { it.key == current.category }
+    val catIcon = cat?.icon ?: "📰"
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(36.dp)
-            .background(NovaBg2),
+            .background(NovaBg2)
+            // Tap = ouvre l'article dans le navigateur
+            .clickable {
+                val link = current.link
+                if (!link.isNullOrEmpty()) {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                    runCatching { context.startActivity(intent) }
+                        .onFailure { Log.w("BreakingTicker", "Cannot open link: $link") }
+                }
+            },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Label "BREAKING" fixe a gauche
@@ -433,39 +458,22 @@ private fun BreakingTicker(articles: List<Article>) {
             )
         }
 
-        // Track qui defile
-        Box(
+        // Titre de l'article courant, defile avec basicMarquee
+        // (le composant natif Compose pour le texte qui defile a la demande)
+        Text(
+            text = "$catIcon  ${current.title}",
+            color = NovaTextPrimary,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
-                .clipToBounds(),
-        ) {
-            Row(
-                modifier = Modifier
-                    .graphicsLayer { translationX = offsetX }
-                    .padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // On duplique les items 2x pour avoir une boucle fluide
-                (articles + articles).forEachIndexed { index, article ->
-                    val cat = CATEGORIES.firstOrNull { it.key == article.category }
-                    val catIcon = cat?.icon ?: "📰"
-                    val catLabel = cat?.label ?: article.category
-                    Text(
-                        text = "$catIcon $catLabel — ${article.title}",
-                        color = NovaTextPrimary,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                    )
-                    // Separateur entre items
-                    Text(
-                        text = "  ·  ",
-                        color = NovaTextMuted,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        }
+                .padding(start = 12.dp, end = 12.dp)
+                .basicMarquee(
+                    iterations = Int.MAX_VALUE,  // Defile en boucle indefiniment
+                    delayMillis = 1500,          // Pause 1.5s avant de recommencer
+                    velocity = 30.dp,            // Vitesse : 30dp par seconde
+                ),
+        )
     }
 }
 

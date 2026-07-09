@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.NovaAtlas" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Theme principal de l'app (apres le splash, applique par Compose via NovaAtlasTheme).
+         On laisse le parent Material standard, Compose override tout. -->
+    <style name="Theme.NovaAtlas" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/nova_bg_0</item>
+        <item name="android:navigationBarColor">@color/nova_bg_0</item>
+        <item name="android:windowBackground">@color/nova_bg_0</item>
+    </style>
+
+    <!-- Theme pour le splash screen (avant le splash Compose).
+         Doit avoir un parent SplashScreen pour que l'API marche.
+         On definit la couleur de fond + l'icone + le texte. -->
+    <style name="Theme.NovaAtlas.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/nova_bg_0</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <!-- Optionnel : texte sous l'icone (affiche pendant le splash).
+             On omet pour rester minimaliste. -->
+        <!-- <item name="windowSplashScreenAnimationDuration">200</item> -->
+    </style>
 </resources>

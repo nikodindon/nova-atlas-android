@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Couleurs par defaut Android (Material wizard) -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
@@ -7,4 +8,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Nova-Atlas : palette alignee sur Theme.kt (Compose) et site Flask -->
+    <color name="nova_bg_0">#FF0A0A0F</color>      <!-- fond principal / splash background -->
+    <color name="nova_accent_yellow">#FFC9A84C</color>  <!-- accent / logo / "N" -->
+    <color name="nova_text_primary">#FFEDF0F7</color>   <!-- texte clair -->
 </resources>

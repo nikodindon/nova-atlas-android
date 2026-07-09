@@ -383,16 +383,9 @@ private fun FeedHeader(
                     )
                 }
                 Spacer(Modifier.width(10.dp))
-                // Logo N : on le rend en jaune Nova-Atlas pour qu'il soit
-                // visible sur le fond noir de l'app. Le PNG d'origine est
-                // un N blanc sur fond transparent, donc SrcIn preserve la
-                // forme du N et applique juste la couleur jaune.
-                Image(
-                    painter = painterResource(R.drawable.ic_header_logo),
-                    contentDescription = "Nova-Atlas",
-                    modifier = Modifier.size(32.dp),
-                    colorFilter = ColorFilter.tint(NovaAccentYellow, blendMode = BlendMode.SrcIn),
-                )
+                // Pas de logo N dans le header (le PNG d'origine rendait
+                // un gros carre jaune meme avec ColorFilter). Le point vert
+                // LIVE suffit pour signaler l'etat du flux.
             }
 
             // Droite : reserve equilibre

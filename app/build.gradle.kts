@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    // Icones Material etendues (Pause, Radio, etc. - le core n'a que ~5 icones)
+    implementation("androidx.compose.material:material-icons-extended")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

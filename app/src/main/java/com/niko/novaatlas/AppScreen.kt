@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -132,30 +133,34 @@ fun AppScreen(
     val isPlaying by player.isPlaying.collectAsState()
     val isPremium by subscriptionManager.isPremium.collectAsState()
 
-    Scaffold(
-        // containerColor = fond noir Nova-Atlas. Important : on doit le
-        // mettre ici sinon le Scaffold utilise un gris Material par defaut
-        // qui apparait sous la status bar transparente.
-        containerColor = NovaBg0,
-        bottomBar = {
+    // Box racine : fond noir garanti, prend tout l'ecran (status bar incluse).
+    // Le contenu va jusqu'aux bords (edge-to-edge), et la BottomNav est
+    // ancree en bas par-dessus le contenu.
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(NovaBg0)
+    ) {
+        // Zone contenu : laisse la place pour la BottomNav en bas
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 80.dp)  // Hauteur approx de la BottomNav
+        ) {
+            when (currentTab) {
+                Tab.Feed -> NewsFeedScreen()
+                Tab.Radio -> RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
+            }
+        }
+
+        // BottomNav : fixee en bas, par-dessus le contenu
+        Box(modifier = Modifier.align(Alignment.BottomCenter)) {
             BottomNav(
                 currentTab = currentTab,
                 onTabSelected = { currentTab = it },
                 isPlaying = isPlaying,
                 isPremium = isPremium,
             )
-        }
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(NovaBg0)
-                .padding(padding)
-        ) {
-            when (currentTab) {
-                Tab.Feed -> NewsFeedScreen()
-                Tab.Radio -> RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
-            }
         }
     }
 }
@@ -379,13 +384,14 @@ private fun FeedHeader(
                 }
                 Spacer(Modifier.width(10.dp))
                 // Logo N : on le rend en jaune Nova-Atlas pour qu'il soit
-                // visible sur le fond noir de l'app (le PNG d'origine est
-                // noir, donc invisible sur fond noir).
+                // visible sur le fond noir de l'app. Le PNG d'origine est
+                // un N blanc sur fond transparent, donc SrcIn preserve la
+                // forme du N et applique juste la couleur jaune.
                 Image(
                     painter = painterResource(R.drawable.ic_header_logo),
                     contentDescription = "Nova-Atlas",
                     modifier = Modifier.size(32.dp),
-                    colorFilter = ColorFilter.tint(NovaAccentYellow),
+                    colorFilter = ColorFilter.tint(NovaAccentYellow, blendMode = BlendMode.SrcIn),
                 )
             }
 

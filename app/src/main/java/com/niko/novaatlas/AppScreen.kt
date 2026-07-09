@@ -401,12 +401,12 @@ private fun BreakingTicker(articles: List<Article>) {
     val context = LocalContext.current
     var currentIndex by remember { mutableStateOf(0) }
 
-    // Rotation auto : change de news toutes les 8s (= le temps que le titre
-    // ait fini de defiler en basicMarquee)
+    // Rotation auto : change de news toutes les 12s (laisse le temps de lire
+    // 1-2 passages du titre complet, meme pour les titres longs)
     LaunchedEffect(articles.size) {
         if (articles.size > 1) {
             while (true) {
-                delay(8_000)
+                delay(12_000)
                 currentIndex = (currentIndex + 1) % articles.size
             }
         }
@@ -470,8 +470,8 @@ private fun BreakingTicker(articles: List<Article>) {
                 .padding(start = 12.dp, end = 12.dp)
                 .basicMarquee(
                     iterations = Int.MAX_VALUE,  // Defile en boucle indefiniment
-                    delayMillis = 1500,          // Pause 1.5s avant de recommencer
-                    velocity = 30.dp,            // Vitesse : 30dp par seconde
+                    delayMillis = 800,           // Pause 0.8s entre 2 passages du meme titre
+                    velocity = 50.dp,            // Vitesse : 50dp par seconde (plus rapide)
                 ),
         )
     }

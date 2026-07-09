@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -131,6 +132,11 @@ fun AppScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        // Desactive les insets par defaut (status bar en haut, nav bar en bas)
+        // pour que notre contenu Compose aille jusqu'aux bords de l'ecran
+        // (mode edge-to-edge complet). On gere manuellement le padding du
+        // contenu si besoin.
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
             BottomNav(
                 currentTab = currentTab,

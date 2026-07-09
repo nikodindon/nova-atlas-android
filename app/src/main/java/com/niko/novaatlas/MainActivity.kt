@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private lateinit var adManager: AdManager
+    private lateinit var subscriptionManager: SubscriptionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Init AdMob SDK le plus tot possible (avant super.onCreate = best practice)
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         adManager = AdManager(this)
+        subscriptionManager = SubscriptionManager(this)
 
         enableEdgeToEdge()
         setContent {
@@ -57,6 +59,7 @@ class MainActivity : ComponentActivity() {
                     RadioScreen(
                         modifier = Modifier.padding(innerPadding),
                         adManager = adManager,
+                        subscriptionManager = subscriptionManager,
                     )
                 }
             }
@@ -65,11 +68,16 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun RadioScreen(modifier: Modifier = Modifier, adManager: AdManager) {
+fun RadioScreen(
+    modifier: Modifier = Modifier,
+    adManager: AdManager,
+    subscriptionManager: SubscriptionManager,
+) {
     val context = LocalContext.current
     val activity = context as? androidx.activity.ComponentActivity
     val player = remember { RadioPlayer(context) }
     val isPlaying by player.isPlaying.collectAsState()
+    val isPremium by subscriptionManager.isPremium.collectAsState()
 
     var articles by remember { mutableStateOf<List<Article>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -78,6 +86,7 @@ fun RadioScreen(modifier: Modifier = Modifier, adManager: AdManager) {
 
     LaunchedEffect(Unit) {
         player.connect()
+        subscriptionManager.refresh()  // check premium status au mount
         scope.launch {
             try {
                 val response = ApiClient.api.getArticles(limit = 50)
@@ -109,7 +118,7 @@ fun RadioScreen(modifier: Modifier = Modifier, adManager: AdManager) {
         ) {
             Text(text = "Nova-Atlas", style = MaterialTheme.typography.headlineMedium)
             Text(
-                text = "Web Radio",
+                text = if (isPremium) "Web Radio — Premium ✨" else "Web Radio",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -120,7 +129,12 @@ fun RadioScreen(modifier: Modifier = Modifier, adManager: AdManager) {
                         player.pause()
                         return@Button
                     }
-                    // Sinon on montre la pub (si prete + rate limit ok) PUIS on lance la radio
+                    // Si premium : on stream direct, pas de pub
+                    if (isPremium) {
+                        player.play()
+                        return@Button
+                    }
+                    // Sinon : pub (si prete + rate limit ok) PUIS radio
                     if (activity != null) {
                         adManager.showIfReady(activity) {
                             player.play()

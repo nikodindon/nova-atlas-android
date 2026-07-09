@@ -29,9 +29,40 @@ android {
         manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-2776142788958553~6881853090"
     }
 
+    // Keystore : gitignoré. Pour creer ta propre keystore, voir README.md.
+    // La signature release est conditionnelle : si la keystore n'existe pas,
+    // on fallback sur debug (utile pour tester un release local avant publish).
+    signingConfigs {
+        create("release") {
+            val keystorePath = rootProject.file("keystore/nova-atlas-release.jks")
+            if (keystorePath.exists()) {
+                storeFile = keystorePath
+                storePassword = (project.findProperty("RELEASE_STORE_PASSWORD") as String?)
+                    ?: System.getenv("RELEASE_STORE_PASSWORD") ?: ""
+                keyAlias = (project.findProperty("RELEASE_KEY_ALIAS") as String?)
+                    ?: System.getenv("RELEASE_KEY_ALIAS") ?: "nova-atlas"
+                keyPassword = (project.findProperty("RELEASE_KEY_PASSWORD") as String?)
+                    ?: System.getenv("RELEASE_KEY_PASSWORD") ?: ""
+            }
+            // Sinon : on laisse la config "release" vide, on tombera sur debugSigning
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Si une vraie keystore est dispo, on l'utilise. Sinon fallback debug
+            // (pratique pour tester assembleRelease sans creds, mais INTERDIT pour
+            // publier sur le Play Store - il refusera un APK signe debug).
+            signingConfig = if (signingConfigs.findByName("release")?.storeFile != null
+                && signingConfigs.findByName("release")?.storeFile?.exists() == true
+            ) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
+
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

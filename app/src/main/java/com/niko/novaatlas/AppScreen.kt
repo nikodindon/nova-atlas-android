@@ -179,7 +179,7 @@ private fun NovaMasthead(modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .background(NovaBg0)
             .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(top = 12.dp, bottom = 10.dp),
+            .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(

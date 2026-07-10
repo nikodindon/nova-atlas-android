@@ -19,8 +19,10 @@
     <style name="Theme.NovaAtlas.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/nova_bg_0</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
-        <!-- Optionnel : texte sous l'icone (affiche pendant le splash).
-             On omet pour rester minimaliste. -->
-        <!-- <item name="windowSplashScreenAnimationDuration">200</item> -->
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:statusBarColor">@color/nova_bg_0</item>
+        <item name="android:navigationBarColor">@color/nova_bg_0</item>
+        <item name="android:windowBackground">@color/nova_bg_0</item>
     </style>
 </resources>

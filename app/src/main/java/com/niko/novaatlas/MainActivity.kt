@@ -1,11 +1,14 @@
 package com.niko.novaatlas
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.SystemBarStyle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.gms.ads.MobileAds
 import com.niko.novaatlas.ui.theme.NovaAtlasTheme
 
@@ -29,7 +32,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // enableEdgeToEdge : l'app prend tout l'ecran, status/nav bar sont
         // gerees par le contenu Compose (couleur de fond).
-        enableEdgeToEdge()
+        // On force le scrim a transparent (sinon Android 13+ met un gris
+        // derriere la status bar qui apparait au-dessus de notre fond noir).
+        // SystemBarStyle.dark(Color.TRANSPARENT) = pas de scrim, juste les icones.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+        )
 
         // Force la status bar a etre completement transparente avec icones
         // sombres, et SANS le label d'app Android en blanc (sur Android 12+,

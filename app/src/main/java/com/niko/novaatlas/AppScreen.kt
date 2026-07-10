@@ -73,6 +73,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,9 +81,26 @@ import com.niko.novaatlas.ui.theme.NovaAccentGreen
 import com.niko.novaatlas.ui.theme.NovaAccentRed
 import com.niko.novaatlas.ui.theme.NovaAccentYellow
 import com.niko.novaatlas.ui.theme.NovaBg0
+import com.niko.novaatlas.ui.theme.NovaBg1
 import com.niko.novaatlas.ui.theme.NovaBg2
 import com.niko.novaatlas.ui.theme.NovaBg3
 import com.niko.novaatlas.ui.theme.NovaBg4
+import com.niko.novaatlas.ui.theme.NovaCatAuto
+import com.niko.novaatlas.ui.theme.NovaCatCrypto
+import com.niko.novaatlas.ui.theme.NovaCatCulture
+import com.niko.novaatlas.ui.theme.NovaCatEconomie
+import com.niko.novaatlas.ui.theme.NovaCatEnvironnement
+import com.niko.novaatlas.ui.theme.NovaCatFrance
+import com.niko.novaatlas.ui.theme.NovaCatGaming
+import com.niko.novaatlas.ui.theme.NovaCatGeopolitique
+import com.niko.novaatlas.ui.theme.NovaCatMonde
+import com.niko.novaatlas.ui.theme.NovaCatRegions
+import com.niko.novaatlas.ui.theme.NovaCatSante
+import com.niko.novaatlas.ui.theme.NovaCatSciencesHumaines
+import com.niko.novaatlas.ui.theme.NovaCatScienceSante
+import com.niko.novaatlas.ui.theme.NovaCatSociete
+import com.niko.novaatlas.ui.theme.NovaCatSport
+import com.niko.novaatlas.ui.theme.NovaCatTechIA
 import com.niko.novaatlas.ui.theme.NovaTextDim
 import com.niko.novaatlas.ui.theme.NovaTextMuted
 import com.niko.novaatlas.ui.theme.NovaTextPrimary
@@ -121,6 +139,72 @@ enum class Tab(val label: String) {
 }
 
 /**
+ * Couleur d'accent par cle de categorie (cf. CATEGORIES ci-dessus).
+ * Utilise pour : pastille/tag dans ArticleCard, chip selectionne dans CategoryFilterBar.
+ * Fallback NovaTextMuted si la cle est inconnue (defense).
+ */
+private fun categoryColor(key: String?) = when (key) {
+    "geopolitique"      -> NovaCatGeopolitique
+    "economie"          -> NovaCatEconomie
+    "crypto"            -> NovaCatCrypto
+    "tech"              -> NovaCatTechIA
+    "france"            -> NovaCatFrance
+    "monde"             -> NovaCatMonde
+    "science"           -> NovaCatScienceSante
+    "environnement"     -> NovaCatEnvironnement
+    "societe"           -> NovaCatSociete
+    "culture"           -> NovaCatCulture
+    "sport"             -> NovaCatSport
+    "sante"             -> NovaCatSante
+    "gaming"            -> NovaCatGaming
+    "sciences_humaines" -> NovaCatSciencesHumaines
+    "auto"              -> NovaCatAuto
+    "regions"           -> NovaCatRegions
+    else                -> NovaTextMuted
+}
+
+/**
+ * Masthead "Nova-Atlas" (signature visuelle, style journal centre).
+ * - "Nova-Atlas" en Serif bold, gros, letter-spacing serre, couleur primary text.
+ * - Tagline "Web Radio IA" en sans-serif muted, en dessous.
+ * - Filet fin 1dp NovaBg4 en bas pour fermer la zone masthead.
+ * - Total hauteur ~140dp, plus respirant que la zone vide d'avant.
+ */
+@Composable
+private fun NovaMasthead(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(NovaBg0)
+            .padding(top = 12.dp, bottom = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Nova-Atlas",
+            color = NovaTextPrimary,
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.Bold,
+            fontSize = 32.sp,
+            letterSpacing = (-0.5).sp,
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = "WEB RADIO IA",
+            color = NovaTextMuted,
+            fontFamily = FontFamily.SansSerif,
+            fontWeight = FontWeight.Medium,
+            fontSize = 10.sp,
+            letterSpacing = 4.sp,
+        )
+        Spacer(Modifier.height(10.dp))
+        HorizontalDivider(
+            color = NovaBg4,
+            thickness = 1.dp,
+        )
+    }
+}
+
+/**
  * Ecran racine : 2 onglets (Fil d'actu / Radio) avec bottom nav, theme Nova-Atlas.
  */
 @Composable
@@ -136,29 +220,39 @@ fun AppScreen(
     // Scaffold : gere les insets (status bar + nav bar) et la BottomBar.
     // containerColor = fond noir Nova-Atlas (sinon le Scaffold utilise un
     // gris Material par defaut qui apparait sous la status bar transparente).
-    Scaffold(
-        containerColor = NovaBg0,
-        bottomBar = {
-            BottomNav(
-                currentTab = currentTab,
-                onTabSelected = { currentTab = it },
-                isPlaying = isPlaying,
-                isPremium = isPremium,
-            )
-        }
-    ) { padding ->
-        // Box de contenu : prend la zone restante (entre status bar et
-        // BottomNav) avec un fond noir garanti pour eviter toute bande
-        // grise visible
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(NovaBg0)
-        ) {
-            when (currentTab) {
-                Tab.Feed -> NewsFeedScreen()
-                Tab.Radio -> RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
+    // Box racine : prend tout l'ecran (status bar incluse) en NovaBg0.
+    // Indispensable en edge-to-edge : sinon on voit le windowBackground
+    // (gris-bleu Material 3) sous la status bar transparente, ce qui cree
+    // une bande grise entre la status bar et notre NovaMasthead.
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(NovaBg0)
+    ) {
+        Scaffold(
+            containerColor = NovaBg0,
+            bottomBar = {
+                BottomNav(
+                    currentTab = currentTab,
+                    onTabSelected = { currentTab = it },
+                    isPlaying = isPlaying,
+                    isPremium = isPremium,
+                )
+            }
+        ) { padding ->
+            // Box de contenu : prend la zone restante (entre status bar et
+            // BottomNav) avec un fond noir garanti pour eviter toute bande
+            // grise visible
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(NovaBg0)
+            ) {
+                when (currentTab) {
+                    Tab.Feed -> NewsFeedScreen()
+                    Tab.Radio -> RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
+                }
             }
         }
     }
@@ -271,6 +365,9 @@ private fun NewsFeedScreen() {
     }
 
     Column(modifier = Modifier.fillMaxSize().background(NovaBg0)) {
+        // Signature visuelle : masthead "Nova-Atlas" (style journal centre)
+        NovaMasthead()
+
         // Header compact (style site)
         FeedHeader(
             isLoading = isLoading,
@@ -546,6 +643,8 @@ private fun CategoryFilterBar(
         }
         items(CATEGORIES) { cat ->
             val isSelected = cat.key in selected
+            // Chip selectionne prend la couleur de la categorie (au lieu de jaune uniforme)
+            val selColor = categoryColor(cat.key)
             FilterChip(
                 selected = isSelected,
                 onClick = { onToggle(cat.key) },
@@ -556,8 +655,8 @@ private fun CategoryFilterBar(
                     )
                 },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = NovaAccentYellow.copy(alpha = 0.2f),
-                    selectedLabelColor = NovaAccentYellow,
+                    selectedContainerColor = selColor.copy(alpha = 0.20f),
+                    selectedLabelColor = selColor,
                 ),
             )
         }
@@ -584,16 +683,26 @@ fun ArticleCard(article: Article) {
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Pastille categorie coloree
+                // Pastille categorie : couleur d'accent 8dp (scan visuel rapide)
+                val catColor = categoryColor(article.category)
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(catColor)
+                )
+                Spacer(Modifier.width(6.dp))
+                // Emoji categorie (icone)
                 Text(
                     text = "${CATEGORIES.firstOrNull { it.key == article.category }?.icon ?: "🌐"}",
                     style = MaterialTheme.typography.labelLarge,
                 )
                 Spacer(Modifier.width(6.dp))
+                // Label categorie en CAPS colore selon la categorie (au lieu de jaune uniforme)
                 Text(
                     text = (CATEGORIES.firstOrNull { it.key == article.category }?.label
                         ?: article.category).uppercase(),
-                    color = NovaAccentYellow,
+                    color = catColor,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                 )

@@ -242,11 +242,12 @@ fun AppScreen(
         ) { padding ->
             // Box de contenu : prend la zone restante (entre status bar et
             // BottomNav) avec un fond noir garanti pour eviter toute bande
-            // grise visible
+            // grise visible. On n'applique QUE le padding bottom (le top est
+            // deja couvert par la Box racine fillMaxSize().background(NovaBg0)).
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(bottom = padding.calculateBottomPadding())
                     .background(NovaBg0)
             ) {
                 when (currentTab) {

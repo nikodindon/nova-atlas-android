@@ -822,6 +822,7 @@ private fun parseRfc2822(rfc: String?): java.util.Date? {
 private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Boolean) {
     val context = LocalContext.current
     val activity = context as? androidx.activity.ComponentActivity
+    val radioStatus by player.status.collectAsState()
     val isPlaying by player.isPlaying.collectAsState()
 
     // PAS de DisposableEffect ici : le player est partage avec le RadioService
@@ -890,7 +891,7 @@ private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Bo
 
         Spacer(Modifier.height(16.dp))
         Text(
-            text = if (isPlaying) "En cours de lecture" else "Tapez pour lire",
+            text = if (isPlaying) "Lecture locale active" else "Radio : $radioStatus — appuyez pour lire",
             color = if (isPlaying) NovaAccentGreen else NovaTextMuted,
             style = MaterialTheme.typography.bodyMedium,
         )

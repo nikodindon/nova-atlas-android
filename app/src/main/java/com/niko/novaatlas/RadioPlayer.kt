@@ -3,6 +3,8 @@ package com.niko.novaatlas
 import android.content.ComponentName
 import android.content.Context
 import android.util.Log
+import com.google.common.util.concurrent.ListenableFuture
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -23,6 +25,9 @@ import kotlinx.coroutines.flow.asStateFlow
 class RadioPlayer(private val context: Context) {
 
     private var controller: MediaController? = null
+    private var pending: ListenableFuture<MediaController>? = null
+    private val mutableStatus = MutableStateFlow("idle")
+    val status = mutableStatus.asStateFlow()
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
@@ -36,6 +41,8 @@ class RadioPlayer(private val context: Context) {
      * player distant dit non.
      */
     private val playerListener = object : Player.Listener {
+        override fun onPlayerError(error: PlaybackException) { mutableStatus.value = "error" }
+        override fun onPlaybackStateChanged(state: Int) { mutableStatus.value = when(state) { Player.STATE_BUFFERING -> "buffering"; Player.STATE_READY -> "ready"; else -> "idle" } }
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _isPlaying.value = isPlaying
         }
@@ -46,15 +53,19 @@ class RadioPlayer(private val context: Context) {
      * A appeller depuis un LaunchedEffect(Unit) dans Compose.
      */
     fun connect(onReady: () -> Unit = {}) {
+        if (pending != null) return
         if (controller != null) {
             onReady()
             return
         }
         val token = SessionToken(context, ComponentName(context, RadioService::class.java))
         val futureController = MediaController.Builder(context, token).buildAsync()
+        pending = futureController
         futureController.addListener(
             {
-                val c = futureController.get()
+                if (pending !== futureController) return@addListener
+                pending = null
+                val c = try { futureController.get() } catch (_: Exception) { mutableStatus.value="error"; return@addListener }
                 controller = c
                 c.addListener(playerListener)
                 _isPlaying.value = c.isPlaying
@@ -68,11 +79,14 @@ class RadioPlayer(private val context: Context) {
         // On ne touche plus _isPlaying ici : c'est le Player.Listener qui
         // fait foi quand l'etat reel change (sinon UI dit "playing" mais
         // le player distant est encore en pause = bug play apres pause).
+        controller?.prepare()
         controller?.playWhenReady = true
     }
 
     fun pause() {
-        controller?.playWhenReady = false
+        controller?.pause()
+        controller?.stop()
+        mutableStatus.value = "idle"
     }
 
     /**
@@ -81,6 +95,7 @@ class RadioPlayer(private val context: Context) {
      * il passe par la notif media.
      */
     fun release() {
+        pending?.let { MediaController.releaseFuture(it) }; pending=null
         controller?.let {
             it.removeListener(playerListener)
             it.release()

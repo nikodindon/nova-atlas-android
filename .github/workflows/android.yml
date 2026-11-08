@@ -16,6 +16,8 @@ jobs:
         with:
           validate-wrappers: true
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
       - run: ./gradlew testDebugUnitTest assembleDebug lintDebug --stacktrace
       - run: ./gradlew :app:dependencies --configuration debugRuntimeClasspath > dependency-report.txt

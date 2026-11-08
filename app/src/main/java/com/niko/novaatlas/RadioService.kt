@@ -1,6 +1,12 @@
 package com.niko.novaatlas
 
 import android.content.Intent
+import androidx.media3.common.Player
+import androidx.media3.datasource.okhttp.OkHttpDataSource
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -17,6 +23,7 @@ import androidx.media3.session.MediaSessionService
  * Le client (Compose UI) se connecte via un MediaController - on n'instancie
  * plus d'ExoPlayer cote UI.
  */
+@UnstableApi
 class RadioService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
@@ -24,7 +31,9 @@ class RadioService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
+        val http = OkHttpDataSource.Factory(OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).connectTimeout(10,TimeUnit.SECONDS).readTimeout(15,TimeUnit.SECONDS).build())
         val player = ExoPlayer.Builder(this)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(this).setDataSourceFactory(http).setLoadErrorHandlingPolicy(RadioRetryPolicy()))
             // Le stream est de la musique (classifie "media" par Android, priorite
             // audio correcte, duck sur notifs/Calls)
             .setAudioAttributes(
@@ -54,7 +63,13 @@ class RadioService : MediaSessionService() {
             .build()
 
         player.setMediaItem(item)
-        player.prepare()
+        // No connection before explicit Play; Stop cancels a pending load/retry.
+        player.addListener(object: Player.Listener {
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (!playWhenReady) player.stop()
+                else if (player.playbackState == Player.STATE_IDLE) player.prepare()
+            }
+        })
 
         mediaSession = MediaSession.Builder(this, player).build()
     }

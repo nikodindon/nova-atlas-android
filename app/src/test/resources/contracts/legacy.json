@@ -1,0 +1,18 @@
+{
+  "articles": [
+    {
+      "category": "france",
+      "hash": "6401d9f6570aed94888c57a092934014",
+      "link": "javascript:alert(1)",
+      "pub_date": "2026-11-08T20:29:34.674458+00:00",
+      "source": "Média 0",
+      "summary": "Le ministre Martin annonce sa démission du gouvernement français après le vote parlementaire. Les élus commentent cette démission.",
+      "timestamp": "2026-11-08T20:29:34.674458",
+      "title": "<img src=x onerror=\"window.pwned=1\"> 日本語 العربية",
+      "title_original": "<img src=x onerror=\"window.pwned=1\"> 日本語 العربية"
+    }
+  ],
+  "count": 1,
+  "date": "20261108",
+  "status": "ok"
+}

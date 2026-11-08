@@ -1,0 +1,187 @@
+{
+  "categories": [
+    {
+      "active": true,
+      "color": null,
+      "icon": "⚡",
+      "id": "tech",
+      "name": "Tech & IA",
+      "order": 0
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🌍",
+      "id": "geopolitique",
+      "name": "Géopolitique",
+      "order": 1
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "📈",
+      "id": "economie",
+      "name": "Économie",
+      "order": 2
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "₿",
+      "id": "crypto",
+      "name": "Crypto",
+      "order": 3
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🗼",
+      "id": "france",
+      "name": "France",
+      "order": 4
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🌐",
+      "id": "monde",
+      "name": "Monde",
+      "order": 5
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🔬",
+      "id": "science",
+      "name": "Science & Santé",
+      "order": 6
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🌿",
+      "id": "environnement",
+      "name": "Environnement",
+      "order": 7
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "✊",
+      "id": "societe",
+      "name": "Société & Droits",
+      "order": 8
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🎭",
+      "id": "culture",
+      "name": "Culture & Arts",
+      "order": 9
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "⚽",
+      "id": "sport",
+      "name": "Sport",
+      "order": 10
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🏥",
+      "id": "sante",
+      "name": "Sante",
+      "order": 11
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🎮",
+      "id": "gaming",
+      "name": "Gaming",
+      "order": 12
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🧠",
+      "id": "sciences_humaines",
+      "name": "Sciences humaines",
+      "order": 13
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🚗",
+      "id": "auto",
+      "name": "Auto",
+      "order": 14
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🗺️",
+      "id": "regions",
+      "name": "Regions",
+      "order": 15
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🏯",
+      "id": "asie",
+      "name": "Asie",
+      "order": 16
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🕌",
+      "id": "monde_arabe",
+      "name": "Monde arabe",
+      "order": 17
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🪆",
+      "id": "eurasie",
+      "name": "Eurasie",
+      "order": 18
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🏰",
+      "id": "europe",
+      "name": "Europe",
+      "order": 19
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🌍",
+      "id": "afrique",
+      "name": "Afrique",
+      "order": 20
+    },
+    {
+      "active": false,
+      "color": null,
+      "icon": "🌴",
+      "id": "amerique_latine",
+      "name": "Amerique latine",
+      "order": 21
+    }
+  ],
+  "name": "Nova Atlas",
+  "observed_at": "2026-11-08T20:29:34.688921+00:00",
+  "status": "ok",
+  "streams": {
+    "android": "/stream/nova-android",
+    "primary": "/stream/nova"
+  }
+}

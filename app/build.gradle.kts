@@ -100,6 +100,7 @@ dependencies {
 
     // Nova-Atlas - player radio (Media3 / ExoPlayer)
     implementation(libs.media3.exoplayer)
+    implementation("androidx.media3:media3-datasource-okhttp:1.4.1")
     implementation(libs.media3.ui)
     implementation(libs.media3.session)
 

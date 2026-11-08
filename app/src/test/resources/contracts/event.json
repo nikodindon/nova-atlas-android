@@ -1,0 +1,92 @@
+{
+  "event": {
+    "algorithm": "conservative-complete-link-v1",
+    "article_count": 2,
+    "article_hashes": [
+      "e346b667504b679a48419d1b6147ec8b",
+      "6401d9f6570aed94888c57a092934014"
+    ],
+    "articles": [
+      {
+        "article_hash": "e346b667504b679a48419d1b6147ec8b",
+        "category": "france",
+        "domain": "media1.invalid",
+        "fetched_at": null,
+        "first_seen_at": null,
+        "id": "1a237d704596b5930b26fb0adc9774f5efa41ab60f8a633d947a80a0ed8b6616",
+        "language": null,
+        "link": "https://media1.invalid/article",
+        "observation_status": "ambiguous_local",
+        "observed_at": null,
+        "observed_raw": "2026-11-06T12:00:00",
+        "original_title": "Le ministre Martin annonce sa démission du gouvernement français",
+        "processed_at": null,
+        "publication_status": "aware",
+        "published_at": "2026-11-06T12:00:00+00:00",
+        "published_raw": "2026-11-06T12:00:00+00:00",
+        "source": "Média 1",
+        "summary": "Le ministre Martin annonce sa démission du gouvernement français après le vote parlementaire. Les élus commentent cette démission.",
+        "title": "Le ministre Martin annonce sa démission du gouvernement français"
+      },
+      {
+        "article_hash": "6401d9f6570aed94888c57a092934014",
+        "category": "france",
+        "domain": "media0.invalid",
+        "fetched_at": null,
+        "first_seen_at": null,
+        "id": "3615ba7aaf226e26e95d3ec239912281d0092f77f0ba9ba2a36a1f865fac35b2",
+        "language": null,
+        "link": "https://media0.invalid/article",
+        "observation_status": "ambiguous_local",
+        "observed_at": null,
+        "observed_raw": "2026-11-06T12:00:00",
+        "original_title": "Le ministre Martin annonce sa démission du gouvernement français",
+        "processed_at": null,
+        "publication_status": "aware",
+        "published_at": "2026-11-06T12:00:00+00:00",
+        "published_raw": "2026-11-06T12:00:00+00:00",
+        "source": "Média 0",
+        "summary": "Le ministre Martin annonce sa démission du gouvernement français après le vote parlementaire. Les élus commentent cette démission.",
+        "title": "Le ministre Martin annonce sa démission du gouvernement français"
+      }
+    ],
+    "category": "france",
+    "confidence": "conservative_lexical",
+    "disagreements": [],
+    "domain_count": 2,
+    "domains": [
+      "media0.invalid",
+      "media1.invalid"
+    ],
+    "event_at": null,
+    "event_id": "evt_d689a3892bfb9bec5cdcbddccbdce299",
+    "first_discovered_at": null,
+    "image": {
+      "attribution": null,
+      "caption": "Illustration indisponible",
+      "fallback": true,
+      "height": 180,
+      "url": "/assets/news-fallback.svg",
+      "width": 320
+    },
+    "independent_confirmation": false,
+    "last_updated_at": "2026-11-06T12:00:00+00:00",
+    "latest_published_at": "2026-11-06T12:00:00+00:00",
+    "reasons": [
+      "aware_publications_within_18h",
+      "high_title_overlap",
+      "shared_action",
+      "shared_lexical_anchors",
+      "summary_overlap"
+    ],
+    "secondary_categories": [],
+    "sources": [
+      "Média 0",
+      "Média 1"
+    ],
+    "status": "grouped",
+    "title": "Le ministre Martin annonce sa démission du gouvernement français"
+  },
+  "observed_at": "2026-11-08T20:29:34.695358+00:00",
+  "status": "ok"
+}

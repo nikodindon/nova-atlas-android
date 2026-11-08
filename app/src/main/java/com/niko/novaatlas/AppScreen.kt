@@ -339,7 +339,6 @@ private fun BottomNav(
 
 @Composable
 private fun NewsFeedScreen() {
-    val scope = rememberCoroutineScope()
     val repository = remember { NewsRepository(ApiClient.api) }
     val state by repository.state.collectAsState()
     val articles = state.articles
@@ -364,7 +363,7 @@ private fun NewsFeedScreen() {
         )
 
         Row {
-            IconButton(onClick = { scope.launch { repository.refresh() } }, enabled = !isLoading) {
+            IconButton(onClick = { repository.requestRefresh() }, enabled = !isLoading) {
                 Icon(Icons.Filled.Refresh, contentDescription = "Actualiser")
             }
             Text(if (errorMsg != null) "Données anciennes — $errorMsg" else state.observedAt?.let { "Dernière lecture : " + java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalTime().withNano(0) } ?: "Chargement")

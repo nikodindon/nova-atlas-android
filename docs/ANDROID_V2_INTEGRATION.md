@@ -85,7 +85,7 @@ Aucun ETag ou 304 inventé : 304 inattendu est une erreur, pas du contenu inchan
 `NewsRepository` expose StateFlow et un mutex tryLock : un refresh concurrent est
 abandonné, pas mis en attente. L'écran collecte dans repeatOnLifecycle STARTED,
 annule la boucle et les appels au passage en arrière-plan ou à la sortie de l'onglet.
-Refresh manuel et automatique 60 s, intervalle injectable 30–300 s ; debounce manuel
+Refresh manuel via un canal conflated consommé par la même boucle lifecycle (aucune coroutine manuelle survivant au passage en arrière-plan) et automatique 60 s, intervalle injectable 30–300 s ; debounce manuel
 5 s après succès. Backoff 60–900 s sur erreurs ; Retry-After 429 numérique/date est
 respecté même au-delà du plafond normal (pas raccourci). Aucune boucle rapide
 401/403, aucun fallback legacy sur auth/429/5xx/JSON invalide.

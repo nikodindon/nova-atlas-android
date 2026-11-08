@@ -1,7 +1,8 @@
 package com.niko.novaatlas
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -15,6 +16,8 @@ fun retryAfter(value: String?, now: Long): Long? = value?.toLongOrNull()?.takeIf
     ?: reliableInstant(value)?.let { max(0, (it.toEpochMilli() - now + 999) / 1000) }
 data class FeedState(val articles: List<Article> = emptyList(), val categories: List<SiteCategory> = emptyList(), val refreshing: Boolean = false, val observedAt: Long? = null, val error: String? = null, val legacy: Boolean = false)
 class NewsRepository(private val api: NovaAtlasApi, private val clock: () -> Long = System::currentTimeMillis) {
+    private val manual = Channel<Unit>(Channel.CONFLATED)
+    fun requestRefresh() { manual.trySend(Unit) }
     private val lock = Mutex()
     private val mutable = MutableStateFlow(FeedState())
     val state = mutable.asStateFlow()
@@ -66,6 +69,6 @@ class NewsRepository(private val api: NovaAtlasApi, private val clock: () -> Lon
     }
     suspend fun observe(interval: Long = 60_000) {
         require(interval in 30_000..300_000)
-        while (true) { refresh(); delay(interval) }
+        while (true) { refresh(); withTimeoutOrNull(interval) { manual.receive() } }
     }
 }

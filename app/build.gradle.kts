@@ -18,69 +18,39 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // AdMob App ID (compte niko - nikodindon@gmail.com).
-        // Reconnu auto en mode debug, sert pour la prod une fois l'app signee release.
-        manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-2776142788958553~6881853090"
+        manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
     }
-
-    // Keystore : gitignoré. Pour creer ta propre keystore, voir README.md.
-    // La signature release est conditionnelle : si la keystore n'existe pas,
-    // on fallback sur debug (utile pour tester un release local avant publish).
+    val origin = providers.gradleProperty("ATLAS_ORIGIN").getOrElse("https://example.invalid/")
+    val radio = providers.gradleProperty("ATLAS_RADIO").getOrElse("https://example.invalid/stream/nova-android")
+    fun checked(value: String): String {
+        val uri = java.net.URI(value)
+        require(uri.scheme == "https" && uri.host != null && uri.rawUserInfo == null && uri.rawQuery == null && uri.rawFragment == null) { "Explicit HTTPS endpoint required" }
+        require(value.none { it == '"' || it == '\\' || it.code < 32 })
+        return value
+    }
+    checked(origin); checked(radio)
+    require(java.net.URI(origin).path in listOf("", "/")) { "ATLAS_ORIGIN must be an origin" }
     signingConfigs {
         create("release") {
-            val keystorePath = rootProject.file("keystore/nova-atlas-release.jks")
-            if (keystorePath.exists()) {
-                storeFile = keystorePath
-                storePassword = (project.findProperty("RELEASE_STORE_PASSWORD") as String?)
-                    ?: System.getenv("RELEASE_STORE_PASSWORD") ?: ""
-                keyAlias = (project.findProperty("RELEASE_KEY_ALIAS") as String?)
-                    ?: System.getenv("RELEASE_KEY_ALIAS") ?: "nova-atlas"
-                keyPassword = (project.findProperty("RELEASE_KEY_PASSWORD") as String?)
-                    ?: System.getenv("RELEASE_KEY_PASSWORD") ?: ""
-            }
-            // Sinon : on laisse la config "release" vide, on tombera sur debugSigning
+            val path = providers.environmentVariable("RELEASE_KEYSTORE_PATH").orNull
+            if (path != null) storeFile = file(path)
+            storePassword = providers.environmentVariable("RELEASE_STORE_PASSWORD").orNull
+            keyAlias = providers.environmentVariable("RELEASE_KEY_ALIAS").orNull
+            keyPassword = providers.environmentVariable("RELEASE_KEY_PASSWORD").orNull
         }
     }
-
-    // URLs identiques en debug et en release : on pointe toujours vers
-    // les sous-domaines Cloudflare (nova-atlas.nikodindon.dpdns.org).
-    // Ca marche en LAN (le tel sort via la box, Cloudflare renvoie) comme
-    // en 4G (n'importe ou dans le monde). Pas besoin de switcher d'APK
-    // selon l'endroit ou on teste.
-    // But : preparer la publication Play Store, le LAN n'est pas une
-    // cible de deploiement.
     buildTypes {
-        debug {
-            buildConfigField("String", "SERVER_HOST", "\"nova-atlas.nikodindon.dpdns.org\"")
-            buildConfigField("String", "SERVER_PROTOCOL", "\"https\"")
-            buildConfigField("String", "SERVER_PORT_FLASK", "\"443\"")
-            buildConfigField("String", "SERVER_PORT_ICECAST", "\"443\"")
-            buildConfigField("String", "RADIO_STREAM_URL", "\"https://nova-atlas-radio.nikodindon.dpdns.org/nova-android\"")
+        all {
+            buildConfigField("String", "API_ORIGIN", "\"${origin.trimEnd('/')}/\"")
+            buildConfigField("String", "RADIO_STREAM_URL", "\"$radio\"")
+            buildConfigField("boolean", "ADS_ENABLED", "false")
+            buildConfigField("boolean", "PREMIUM_ENABLED", "false")
         }
         release {
-            buildConfigField("String", "SERVER_HOST", "\"nova-atlas.nikodindon.dpdns.org\"")
-            buildConfigField("String", "SERVER_PROTOCOL", "\"https\"")
-            buildConfigField("String", "SERVER_PORT_FLASK", "\"443\"")
-            buildConfigField("String", "SERVER_PORT_ICECAST", "\"443\"")
-            buildConfigField("String", "RADIO_STREAM_URL", "\"https://nova-atlas-radio.nikodindon.dpdns.org/nova-android\"")
-
-            // Si une vraie keystore est dispo, on l'utilise. Sinon fallback debug
-            // (pratique pour tester assembleRelease sans creds, mais INTERDIT pour
-            // publier sur le Play Store - il refusera un APK signe debug).
-            signingConfig = if (signingConfigs.findByName("release")?.storeFile != null
-                && signingConfigs.findByName("release")?.storeFile?.exists() == true
-            ) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
-
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
@@ -105,12 +75,15 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation("androidx.compose.material3:material3:1.2.1")
     // Icones Material etendues (Pause, Radio, etc. - le core n'a que ~5 icones)
     implementation("androidx.compose.material:material-icons-extended")
     // Splash screen API (Android 12+) - evite l'ecran blanc au demarrage
     implementation("androidx.core:core-splashscreen:1.0.1")
     testImplementation(libs.junit)
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -135,4 +108,14 @@ dependencies {
 
     // Nova-Atlas - monétisation (AdMob)
     implementation(libs.admob)
+}
+
+// No debug-signing fallback, no key generation, no upload task.
+gradle.taskGraph.whenReady {
+    if (allTasks.any { it.name.contains("Release", ignoreCase = true) }) {
+        val required = listOf("RELEASE_KEYSTORE_PATH", "RELEASE_STORE_PASSWORD", "RELEASE_KEY_ALIAS", "RELEASE_KEY_PASSWORD")
+        require(required.all { !System.getenv(it).isNullOrBlank() }) { "Release requires explicit private signing configuration" }
+        require(file(System.getenv("RELEASE_KEYSTORE_PATH")).isFile) { "Release keystore missing" }
+        require(!origin.contains("example.invalid")) { "Release requires explicit server configuration" }
+    }
 }

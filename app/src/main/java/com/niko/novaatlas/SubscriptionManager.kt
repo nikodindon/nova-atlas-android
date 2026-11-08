@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.CancellationException
 
 /**
  * Gestion de l'abonnement premium cote app.
@@ -35,6 +37,8 @@ class SubscriptionManager(private val context: Context) {
             ?: "unknown-device"
     }
 
+    fun close() { scope.cancel() }
+
     private companion object {
         const val TAG = "SubscriptionManager"
     }
@@ -44,15 +48,17 @@ class SubscriptionManager(private val context: Context) {
      * + apres chaque achat reussi.
      */
     fun refresh() {
+        if (!BuildConfig.PREMIUM_ENABLED) return
         scope.launch {
             try {
                 val response = ApiClient.api.getSubscriptionStatus(deviceId)
                 _isPremium.value = response.is_premium
-                Log.d(TAG, "Premium status: ${response.is_premium} (expires=${response.expires_at})")
+                Log.d(TAG, "Premium observation updated or unavailable")
+            } catch (e: CancellationException) { throw e
             } catch (e: Exception) {
                 // En cas d'erreur reseau, on reste sur la valeur precedente
                 // (defaut: false). Pas grave, on retentera au prochain refresh.
-                Log.d(TAG, "Refresh premium failed: ${e.message}")
+                Log.d(TAG, "Premium observation updated or unavailable")
             }
         }
     }

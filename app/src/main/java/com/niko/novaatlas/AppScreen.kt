@@ -107,6 +107,7 @@ import com.niko.novaatlas.ui.theme.NovaTextDim
 import com.niko.novaatlas.ui.theme.NovaTextMuted
 import com.niko.novaatlas.ui.theme.NovaTextPrimary
 import com.niko.novaatlas.ui.theme.NovaTextSecondary
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -138,6 +139,7 @@ private val CATEGORIES = listOf(
 enum class Tab(val label: String) {
     Feed("Fil d'actu"),
     Radio("Radio"),
+    Events("Événements"),
 }
 
 /**
@@ -255,6 +257,7 @@ fun AppScreen(
             ) {
                 when (currentTab) {
                     Tab.Feed -> NewsFeedScreen()
+                    Tab.Events -> EventsScreen()
                     Tab.Radio -> RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
                 }
             }
@@ -273,6 +276,7 @@ private fun BottomNav(
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
+        NavigationBarItem(selected = currentTab == Tab.Events, onClick = { onTabSelected(Tab.Events) }, icon = { Text("◉") }, label = { Text("Événements") })
         NavigationBarItem(
             selected = currentTab == Tab.Feed,
             onClick = { onTabSelected(Tab.Feed) },
@@ -335,39 +339,19 @@ private fun BottomNav(
 @Composable
 private fun NewsFeedScreen() {
     val scope = rememberCoroutineScope()
-    var articles by remember { mutableStateOf<List<Article>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMsg by remember { mutableStateOf<String?>(null) }
-    var lastRefresh by remember { mutableStateOf<Long>(0L) }
+    val repository = remember { NewsRepository(ApiClient.api) }
+    val state by repository.state.collectAsState()
+    val articles = state.articles
+    val isLoading = state.refreshing
+    val errorMsg = state.error
     var selectedCategories by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    // Filtre derive : si selectedCategories est vide, on garde tout ; sinon on filtre
-    val filteredArticles by remember {
-        derivedStateOf {
-            if (selectedCategories.isEmpty()) articles
-            else articles.filter { it.category in selectedCategories }
+    val filteredArticles = articles.filter { selectedCategories.isEmpty() || it.category in selectedCategories }
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    LaunchedEffect(repository, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            repository.observe()
         }
     }
-
-    // Refresh toutes les 2s, comme le site Flask
-    LaunchedEffect(Unit) {
-        while (true) {
-            scope.launch {
-                try {
-                    val response = ApiClient.api.getArticles(limit = 50)
-                    articles = response.articles
-                    errorMsg = null
-                    lastRefresh = System.currentTimeMillis()
-                } catch (e: Exception) {
-                    errorMsg = "Erreur chargement: ${e.message}"
-                } finally {
-                    isLoading = false
-                }
-            }
-            delay(2000)
-        }
-    }
-
     Column(modifier = Modifier.fillMaxSize().background(NovaBg0)) {
         // Signature visuelle : masthead "Nova-Atlas" (style journal centre)
         NovaMasthead()
@@ -378,8 +362,15 @@ private fun NewsFeedScreen() {
             breakingArticles = articles.take(8),  // Top 8 pour le ticker
         )
 
+        Row {
+            IconButton(onClick = { scope.launch { repository.refresh() } }, enabled = !isLoading) {
+                Icon(Icons.Filled.Refresh, contentDescription = "Actualiser")
+            }
+            Text(if (errorMsg != null) "Données anciennes — $errorMsg" else state.observedAt?.let { "Dernière lecture : " + java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalTime().withNano(0) } ?: "Chargement")
+        }
         // Filtres categories (chips multi-select cumulatifs)
         CategoryFilterBar(
+            categories = if (state.categories.isEmpty()) articles.map { it.category }.distinct().map { Category(it,it,"🌐") } else state.categories.map { Category(it.id,it.name,it.icon ?: "🌐") },
             selected = selectedCategories,
             onToggle = { cat ->
                 selectedCategories = if (cat in selectedCategories) {
@@ -625,6 +616,7 @@ private fun BreakingTicker(articles: List<Article>) {
 
 @Composable
 private fun CategoryFilterBar(
+    categories: List<Category>,
     selected: Set<String>,
     onToggle: (String) -> Unit,
     onClear: () -> Unit,
@@ -645,7 +637,7 @@ private fun CategoryFilterBar(
                 ),
             )
         }
-        items(CATEGORIES) { cat ->
+        items(categories) { cat ->
             val isSelected = cat.key in selected
             // Chip selectionne prend la couleur de la categorie (au lieu de jaune uniforme)
             val selColor = categoryColor(cat.key)
@@ -672,11 +664,11 @@ fun ArticleCard(article: Article) {
     val context = LocalContext.current
     // Tap sur le titre = ouvre l'article dans le navigateur
     val openArticle = {
-        val link = article.link
+        val link = SafeLinks.external(article.link)
         if (!link.isNullOrEmpty()) {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
             runCatching { context.startActivity(intent) }
-                .onFailure { Log.w("ArticleCard", "Cannot open link: $link") }
+                .onFailure { Log.w("ArticleCard", "Cannot open article link") }
         }
     }
     Card(
@@ -697,7 +689,8 @@ fun ArticleCard(article: Article) {
                 )
                 Spacer(Modifier.width(6.dp))
                 // Emoji categorie (icone)
-                Text(
+                ApprovedImage(article.image)
+        Text(
                     text = "${CATEGORIES.firstOrNull { it.key == article.category }?.icon ?: "🌐"}",
                     style = MaterialTheme.typography.labelLarge,
                 )
@@ -797,21 +790,7 @@ private fun formatRelativeTime(timestamp: String?, pubDate: String?): String {
     }
 }
 
-private fun parseNovaDate(iso: String?): java.util.Date? {
-    if (iso.isNullOrBlank()) return null
-    return try {
-        // Format: "2026-07-08T08:00:33.152009" (le LLM le fait deja dans l'app)
-        val cleaned = iso.replace("Z", "+00:00")
-        java.time.OffsetDateTime.parse(cleaned).toInstant().let { java.util.Date.from(it) }
-    } catch (e: Exception) {
-        try {
-            java.time.LocalDateTime.parse(iso).atZone(java.time.ZoneId.systemDefault()).toInstant()
-                .let { java.util.Date.from(it) }
-        } catch (e2: Exception) {
-            null
-        }
-    }
-}
+private fun parseNovaDate(iso: String?): java.util.Date? = reliableInstant(iso)?.let { java.util.Date.from(it) }
 
 private fun parseRfc2822(rfc: String?): java.util.Date? {
     if (rfc.isNullOrBlank()) return null

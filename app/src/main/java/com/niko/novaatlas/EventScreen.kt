@@ -23,7 +23,7 @@ import android.net.Uri
     if (path == null || failed) { Text("◈ Illustration indisponible"); return }
     val context = LocalContext.current
     // Revocable media: no persistent image cache, no cross-origin redirect, bounded bytes.
-    val loader = remember { coil.ImageLoader.Builder(context).okHttpClient(ApiClient.client()).build() }
+    val loader = remember { coil.ImageLoader.Builder(context).okHttpClient(ApiClient.client(forJson=false)).build() }
     DisposableEffect(loader) { onDispose { loader.shutdown() } }
     AsyncImage(model = ImageRequest.Builder(context).data(BuildConfig.API_ORIGIN.trimEnd('/')+path)
         .diskCachePolicy(CachePolicy.DISABLED).memoryCachePolicy(CachePolicy.DISABLED).size(768,432).build(),

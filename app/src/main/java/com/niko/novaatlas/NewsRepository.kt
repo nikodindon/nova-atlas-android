@@ -51,7 +51,7 @@ class NewsRepository(private val api: NovaAtlasApi, private val clock: () -> Lon
             failures = (failures + 1).coerceAtMost(5)
             val kind = when (e) {
                 is HttpException -> when (e.code()) { 401,403 -> "access_denied"; 429 -> "rate_limited"; in 500..599 -> "server_unavailable"; else -> "http_error" }
-                is SerializationException, is IllegalArgumentException -> "format"
+                is SerializationException, is IllegalArgumentException, is ResponseFormatLimit -> "format"
                 is IOException -> "network"
                 else -> "format"
             }

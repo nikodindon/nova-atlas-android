@@ -77,7 +77,7 @@ Pas de redirection HTTP automatique API/images/radio : un serveur qui redirige d
 ## Réseau et état Compose
 
 Un seul client Retrofit/OkHttp : connexion 10 s, lecture 15 s, appel 20 s, réponses
-2 MiB maximum (succès et erreurs), pas de logs corps/URL, cookies persistants,
+2 MiB maximum (succès et erreurs), profondeur JSON maximale 64 avant décodage, pas de logs corps/URL, cookies persistants,
 credentials, retries transparents ou redirections. Sérialisation stricte avec
 champs inconnus acceptés ; manque de champs requis = erreur format, pas liste vide.
 Aucun ETag ou 304 inventé : 304 inattendu est une erreur, pas du contenu inchangé.

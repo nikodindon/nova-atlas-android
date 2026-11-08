@@ -21,10 +21,18 @@ interface NovaAtlasApi {
     @GET("api/public/events/{id}") suspend fun event(@Path("id") id: String): EventResponse
 }
 
+class ResponseFormatLimit: IOException("response_format_limit")
+fun validateJsonDepth(text: String) {
+    var depth=0; var quoted=false; var escape=false
+    for (c in text) {
+        if (quoted) { if (escape) escape=false else if (c == '\\') escape=true else if (c == '"') quoted=false }
+        else when(c) { '"' -> quoted=true; '{','[' -> { depth++; if(depth>64) throw ResponseFormatLimit() }; '}',']' -> depth-- }
+    }
+}
 object ApiClient {
     val json = Json { ignoreUnknownKeys = true }
     // No URL/body logging, credential/cookie persistence, transparent retries or redirects.
-    fun client(): OkHttpClient = OkHttpClient.Builder()
+    fun client(forJson: Boolean = true): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS)
         .callTimeout(20, TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false)
         .retryOnConnectionFailure(false).addInterceptor { chain ->
@@ -34,6 +42,7 @@ object ApiClient {
                 if (body.contentLength() > 2 * 1024 * 1024) throw IOException("response_limit")
                 val source = body.source(); source.request(2 * 1024 * 1024L + 1)
                 if (source.buffer.size > 2 * 1024 * 1024) throw IOException("response_limit")
+                if (forJson) validateJsonDepth(source.buffer.clone().readUtf8())
                 response
             } catch (e: Exception) { response.close(); throw e }
         }.build()

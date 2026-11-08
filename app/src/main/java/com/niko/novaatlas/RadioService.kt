@@ -23,7 +23,7 @@ import androidx.media3.session.MediaSessionService
  * Le client (Compose UI) se connecte via un MediaController - on n'instancie
  * plus d'ExoPlayer cote UI.
  */
-@UnstableApi
+@androidx.annotation.OptIn(UnstableApi::class)
 class RadioService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null

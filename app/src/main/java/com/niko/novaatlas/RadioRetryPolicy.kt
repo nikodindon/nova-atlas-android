@@ -16,7 +16,7 @@ fun radioRetryDelay(count: Int, status: Int? = null, retry: String? = null, now:
     if (imposed != null && imposed > 60) return C.TIME_UNSET
     return maxOf(delay, (imposed ?: 0)*1000)
 }
-@UnstableApi
+@androidx.annotation.OptIn(UnstableApi::class)
 class RadioRetryPolicy: DefaultLoadErrorHandlingPolicy(4) {
     override fun getRetryDelayMsFor(info: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
         val error = info.exception

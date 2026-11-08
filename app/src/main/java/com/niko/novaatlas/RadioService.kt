@@ -78,8 +78,7 @@ class RadioService : MediaSessionService() {
         mediaSession
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        // Si l'utilisateur swipe l'app depuis le recent apps, on coupe le player
-        // (UX "fermer l'app = arreter la radio", comme la plupart des radios)
+        // A playing session can continue after activity dismissal; explicit Pause stops it.
         val session = mediaSession ?: return
         if (!session.player.playWhenReady || session.player.mediaItemCount == 0) {
             stopSelf()

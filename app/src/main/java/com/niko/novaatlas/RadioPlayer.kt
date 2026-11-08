@@ -26,6 +26,8 @@ class RadioPlayer(private val context: Context) {
 
     private var controller: MediaController? = null
     private var pending: ListenableFuture<MediaController>? = null
+    private val mutableRequested = MutableStateFlow(false)
+    val requested = mutableRequested.asStateFlow()
     private val mutableStatus = MutableStateFlow("idle")
     val status = mutableStatus.asStateFlow()
 
@@ -41,7 +43,8 @@ class RadioPlayer(private val context: Context) {
      * player distant dit non.
      */
     private val playerListener = object : Player.Listener {
-        override fun onPlayerError(error: PlaybackException) { mutableStatus.value = "error" }
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) { mutableRequested.value=playWhenReady }
+        override fun onPlayerError(error: PlaybackException) { controller?.pause(); controller?.stop(); mutableRequested.value=false; mutableStatus.value = "error" }
         override fun onPlaybackStateChanged(state: Int) { mutableStatus.value = when(state) { Player.STATE_BUFFERING -> "buffering"; Player.STATE_READY -> "ready"; else -> "idle" } }
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _isPlaying.value = isPlaying
@@ -69,6 +72,7 @@ class RadioPlayer(private val context: Context) {
                 controller = c
                 c.addListener(playerListener)
                 _isPlaying.value = c.isPlaying
+                mutableRequested.value = c.playWhenReady
                 onReady()
             },
             MoreExecutors.directExecutor()

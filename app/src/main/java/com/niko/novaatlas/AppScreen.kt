@@ -803,6 +803,7 @@ private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Bo
     val activity = context as? androidx.activity.ComponentActivity
     val radioStatus by player.status.collectAsState()
     val isPlaying by player.isPlaying.collectAsState()
+    val requested by player.requested.collectAsState()
 
     // PAS de DisposableEffect ici : le player est partage avec le RadioService
     // qui tourne en background. Si on release ici, on detruit le MediaController
@@ -843,7 +844,7 @@ private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Bo
         ) {
             FilledIconButton(
                 onClick = {
-                    if (isPlaying) {
+                    if (requested) {
                         player.pause()
                     } else if (isPremium) {
                         player.play()
@@ -861,8 +862,8 @@ private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Bo
                 )
             ) {
                 Icon(
-                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    if (requested) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = if (requested) "Pause" else "Play",
                     modifier = Modifier.size(40.dp),
                 )
             }

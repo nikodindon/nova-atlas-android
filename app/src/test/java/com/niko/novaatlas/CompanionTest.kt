@@ -17,6 +17,9 @@ import java.io.IOException
 
 class CompanionTest {
     private fun fixture(name: String) = javaClass.classLoader!!.getResource("contracts/$name.json")!!.readText()
+    @Test fun explicitEnvironmentAndTimeouts() { assertEquals("https",java.net.URI(BuildConfig.API_ORIGIN).scheme);assertFalse(BuildConfig.ADS_ENABLED);assertFalse(BuildConfig.PREMIUM_ENABLED);val client=ApiClient.client();assertEquals(20000,client.callTimeoutMillis);assertFalse(client.followRedirects);assertFalse(client.retryOnConnectionFailure) }
+    @Test fun fixtureFingerprints() { val expected=ApiClient.json.decodeFromString<Map<String,String>>(fixture("sha256"));expected.forEach { (name,hash) -> val bytes=javaClass.classLoader!!.getResource("contracts/$name")!!.readBytes();assertEquals(hash,java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }) } }
+    @Test fun customCategoryOrdering() { val data=ApiClient.json.decodeFromString<SiteResponse>("""{"status":"ok","streams":{},"categories":[{"id":"日本語","name":"日本の技術","order":0},{"id":"local","name":"Locales","order":1}]}""");assertEquals(listOf("日本語","local"),data.categories.map{it.id}) }
     @Test fun legacyContract() { val r=ApiClient.json.decodeFromString<ArticlesResponse>(fixture("legacy")); assertEquals("ok",r.status); assertTrue(r.articles.isNotEmpty()) }
     @Test fun publicContract() { val r=ApiClient.json.decodeFromString<PublicArticles>(fixture("articles")); assertEquals("ok",r.status); assertTrue(r.articles.isNotEmpty()); assertNotNull(r.articles[0].legacy()) }
     @Test fun approvedImageContract() { val r=ApiClient.json.decodeFromString<PublicArticles>(fixture("approved-articles")); val image=r.articles[0].image!!;assertFalse(image.fallback);assertEquals("CC BY 4.0",image.attribution!!.license);assertNotNull(SafeLinks.image(image));assertTrue(image.attribution.author.isNotBlank()) }

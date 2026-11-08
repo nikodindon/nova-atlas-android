@@ -37,18 +37,19 @@ import android.net.Uri
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable fun EventsScreen() {
     var result by remember { mutableStateOf<EventsResponse?>(null) }
     var selected by remember { mutableStateOf<EditorialEvent?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(selected?.event_id) {
         val id = selected?.event_id ?: return@LaunchedEffect
-        try { selected=ApiClient.api.event(id).event } catch (e: CancellationException) { throw e } catch (_: Exception) { error="Détail indisponible — dernière observation affichée" }
+        try { selected=ApiClient.api.event(id).also { require(it.status == "ok" && it.event.event_id == id) }.event } catch (e: CancellationException) { throw e } catch (_: Exception) { error="Détail indisponible — dernière observation affichée" }
     }
     val owner = androidx.compose.ui.platform.LocalLifecycleOwner.current
     LaunchedEffect(owner) {
         owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            try { result=ApiClient.api.events(); error=null }
+            try { result=ApiClient.api.events().also { require(it.status == "ok" && it.events.size <= 20) }; error=null }
             catch (e: CancellationException) { throw e }
             catch (_: Exception) { error="Événements indisponibles" }
         }

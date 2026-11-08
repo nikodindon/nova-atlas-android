@@ -21,6 +21,18 @@ jobs:
       - run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
       - run: python3 tools/security_check.py
       - run: ./gradlew testDebugUnitTest assembleDebug lintDebug --stacktrace
+      - name: Release fails closed without private signing
+        run: |
+          if ./gradlew assembleRelease > release-refusal.txt 2>&1; then
+            echo 'Unexpected release success'; exit 1
+          fi
+          grep -q 'Release requires explicit private signing configuration' release-refusal.txt
+      - name: HTTP endpoints fail closed
+        run: |
+          if ./gradlew help -PATLAS_ORIGIN=http://127.0.0.1/ > http-refusal.txt 2>&1; then
+            echo 'Unexpected HTTP configuration success'; exit 1
+          fi
+          grep -q 'Explicit HTTPS endpoint required' http-refusal.txt
       - run: ./gradlew :app:dependencies --configuration debugRuntimeClasspath > dependency-report.txt
       - uses: actions/upload-artifact@v4
         if: always()

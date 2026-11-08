@@ -13,14 +13,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.CancellationException
 
-/**
- * Gestion de l'abonnement premium cote app.
- *
- * - device_id : identifiant stable du tel (Settings.Secure.ANDROID_ID).
- *   Pas un truc lie au compte Google, reste apres reinstall et apres
- *   factory reset (en general). C'est le minimum pour notre cas.
- * - isPremium : StateFlow que l'UI observe pour skip les pubs.
- * - refresh() : a appeler au mount + quand l'user revient d'un achat.
+/** Legacy status adapter, disabled by default. ANDROID_ID is not purchase proof.
+ * Any future billing requires verified server-side entitlements and consent review.
  */
 class SubscriptionManager(private val context: Context) {
 
@@ -30,8 +24,7 @@ class SubscriptionManager(private val context: Context) {
     val isPremium: StateFlow<Boolean> = _isPremium.asStateFlow()
 
     private val deviceId: String by lazy {
-        // ANDROID_ID est unique par app+device, reset au factory reset mais pas
-        // a la reinstall. Suffisant pour identifier un abonne de maniere stable.
+        // Scoped installation signal only; reset/signature/user changes can change it.
         @Suppress("HardwareIds")
         Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
             ?: "unknown-device"

@@ -125,7 +125,7 @@ Pause/stop annule le chargement et les reprises, Play prépare explicitement.
 Politique de chargement unique (pas de second scheduler de reconnexion) : quatre
 reprises maximum, 3/6/12/24 s, 401/402/403/404/410 et TLS non retentés ; 429 respecte
 Retry-After jusqu'à 60 s, au-delà arrêt explicite plutôt que raccourcir l'embargo.
-Après épuisement : état erreur et nouvelle action Play nécessaire. Aucune reprise
+Après épuisement : état erreur et nouvelle action Play nécessaire après embargo ; le délai 429 est aussi contrôlé avant une relance manuelle tant que le service vit (non persistant au redémarrage du processus). Aucune reprise
 qui force playWhenReady=true après Pause. Pas de garantie d'auditeur, de réception
 continue, ni de test réel Wi-Fi/mobile/Bluetooth à partir de ces doubles.
 Le bouton affiche les états buffering/ready/error observés ; isPlaying décrit le
@@ -134,7 +134,7 @@ qualifier sur appareils.
 
 ## Confidentialité, Premium, signature
 
-Publicité et Premium désactivés à la compilation pour ce candidat ; aucune init Ads
+Publicité et Premium désactivés à la compilation pour ce candidat ; provider auto-init Ads et permissions publicitaires retirés du manifeste fusionné, aucune init Ads
 ni preload ou ANDROID_ID lu sans activation. Identifiants Ads versionnés remplacés
 par IDs de test. Réactivation commerciale hors périmètre : consentement UMP,
 déclaration de données, politique de confidentialité, audience et fournisseur à
@@ -166,7 +166,7 @@ pas d'avis retourné ; **ne couvre pas toutes les transitives ni tous les avis**
 Les dépendances anciennes ne sont pas déclarées « sans vulnérabilité » pour autant.
 
 Tests Compose instrumentés isolent composants sans MainActivity/service/API.
-Workflow `Optional emulator validation` manuel ; aucune validation physique déduite.
+Workflow `Optional emulator validation` à la PR ou manuel ; aucune validation physique déduite.
 
 | Environnement | État |
 |---|---|

@@ -21,6 +21,7 @@ jobs:
       - run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
       - run: python3 tools/security_check.py
       - run: ./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest lintDebug --stacktrace
+      - run: python3 tools/check_manifest.py
       - name: Release fails closed without private signing
         run: |
           if ./gradlew assembleRelease > release-refusal.txt 2>&1; then
@@ -41,3 +42,4 @@ jobs:
           path: |
             app/build/reports/
             dependency-report.txt
+            manifest-validation.json

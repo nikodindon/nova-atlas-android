@@ -29,6 +29,7 @@ class CompanionTest {
     @Test fun subscriptionNotPurchaseProof() { val r=ApiClient.json.decodeFromString<SubscriptionStatusResponse>(fixture("subscription")); assertFalse(r.is_premium) }
     @Test fun optionalUnicode() { val r=ApiClient.json.decodeFromString<Article>("""{"hash":"h","timestamp":"","category":"日本語","title":"العربية 🎙️ <script>"}"""); assertEquals("日本語",r.category); assertNull(r.image) }
     @Test fun ambiguousDate() { assertNull(reliableInstant("2026-10-25T02:30:00")); assertNull(reliableInstant("invalid")); assertNotNull(reliableInstant("2026-10-25T02:30:00+02:00")) }
+    @Test fun localizedAwareAndRawAmbiguousDates() { val zone=java.time.ZoneId.of("Europe/Paris");assertTrue(displayDate("2026-11-08T12:00:00Z",zone,java.util.Locale.FRANCE).contains("13:00"));assertEquals("2026-11-08T12:00:00",displayDate("2026-11-08T12:00:00",zone));assertEquals("Date inconnue",displayDate(null,zone)) }
     @Test fun datesLeap() { assertNotNull(reliableInstant("2024-02-29T23:00:00Z")); assertNull(reliableInstant("2025-02-29T23:00:00Z")) }
     @Test fun dangerousLinks() { listOf("javascript:alert(1)","data:image/svg+xml,x","file:///etc/passwd","https://u:p@example.invalid").forEach { assertNull(SafeLinks.external(it)) } }
     @Test fun mediaPaths() { listOf("https://evil.invalid/media/a","//evil.invalid/media/a","/media/../a","/media/%2e/a","/media/a?x=1").forEach { assertNull(SafeLinks.local(it,"/media/")) }; assertEquals("/media/images/x/320.jpg",SafeLinks.local("/media/images/x/320.jpg","/media/")) }

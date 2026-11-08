@@ -38,3 +38,8 @@ fun reliableInstant(value: String?): Instant? {
         try { ZonedDateTime.parse(value, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant() } catch (_: Exception) { null }
     }
 }
+
+fun displayDate(value: String?, zone: java.time.ZoneId = java.time.ZoneId.systemDefault(), locale: java.util.Locale = java.util.Locale.getDefault()): String {
+    val instant=reliableInstant(value) ?: return value?.takeIf { it.isNotBlank() } ?: "Date inconnue"
+    return java.time.format.DateTimeFormatter.ofLocalizedDateTime(java.time.format.FormatStyle.SHORT).withLocale(locale).withZone(zone).format(instant)
+}

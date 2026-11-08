@@ -70,7 +70,7 @@ import android.net.Uri
             Card(onClick={selected=event},modifier=Modifier.fillMaxWidth().padding(vertical=6.dp)) {
                 Column(Modifier.padding(12.dp)) {
                     Text(event.title); Text("${event.article_count} articles · ${event.domain_count} domaines")
-                    Text(event.last_updated_at ?: "Date inconnue")
+                    Text(displayDate(event.last_updated_at))
                 }
             }
         }

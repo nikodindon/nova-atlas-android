@@ -151,7 +151,7 @@ sur API33+ restent à vérifier sur appareil.
 Release : jamais de fallback signature debug ; tâches Release refusées sans
 RELEASE_KEYSTORE_PATH, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS et
 RELEASE_KEY_PASSWORD, ATLAS_ENV=release et origine explicite. Aucun mot de passe
-imprimé, aucune keystore créée/lue par l'agent, aucune nouvelle clé, version ou
+imprimé, aucune keystore release créée/lue par l'agent, aucune nouvelle clé, version ou
 publication. Debug est l'unique artefact de compilation CI obligatoire.
 
 ## Validation et matrice appareils
@@ -165,13 +165,13 @@ Avis OSV : `docs/measurements/osv-direct.json` — six versions directes interro
 pas d'avis retourné ; **ne couvre pas toutes les transitives ni tous les avis**.
 Les dépendances anciennes ne sont pas déclarées « sans vulnérabilité » pour autant.
 
-Tests Compose instrumentés isolent composants sans MainActivity/service/API.
+Tests Compose instrumentés isolent composants sans MainActivity/service/API. Un quatrième test décode un WAV PCM synthétique privé dans ExoPlayer, puis vérifie Pause, sans réseau ; ce n'est pas un essai du service RadioService ou d'Icecast.
 Workflow `Optional emulator validation` à la PR ou manuel ; aucune validation physique déduite.
 
 | Environnement | État |
 |---|---|
-| JVM/Gradle SDK34 runner GitHub | Résultat final de la PR et rapports artifacts font foi |
-| Émulateur API34 | Workflow préparé, exécution distincte à consigner |
+| JVM/Gradle SDK34 runner GitHub | **42 tests réussis**, 0 échec ; assembleDebug/assembleDebugAndroidTest/lintDebug réussis ; 66 avertissements lint, 1 information, 0 erreur |
+| Émulateur Android14 API34 x86_64 | **4 tests instrumentés réussis** : Unicode/texte hostile, fallback droits inconnus, contexte et lecture/pause Media3 de WAV local ; aucune preuve de réception radio |
 | Android8 API26 physique | Non effectué |
 | Android14 API34 physique (target) | Non effectué |
 | Android récent physique | Non effectué |
@@ -184,6 +184,13 @@ verrouillage/veille, notification, audio focus/appel/casque/Bluetooth, 404/503,
 redémarrage Icecast de test, Pause pendant reprise, retour réseau, fermeture et
 recréation. Consigner appareil/API/build, durée, résultat, mémoire/batterie réellement
 mesurées. Aucune estimation matérielle ou performance vocale revendiquée.
+
+Résultats et liens CI fixés dans `docs/measurements/validation.json` pour le code
+`cc725cb75d4e5c337d44996084bbc4bb729b4f30`. Les commits suivants de documentation
+ne changent pas le code testé ; le statut final de la PR fait foi. La clef debug
+éphémère du runner est générée normalement par AGP, jamais utilisée comme signature
+release. Les avertissements lint (notamment versions, cible ancienne, icônes et
+ressources) restent visibles, sans baseline qui les masque.
 
 ## Limites et rollback
 

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-08",
+  "server": {
+    "commit": "0e8752622bbbe16cf9b3b187bb7d69a9b1e4533b",
+    "pytest_passed": 1600,
+    "failed": 0,
+    "seconds": 75.62,
+    "scope": "local fixtures, no production state"
+  },
+  "android": {
+    "baseline": "d6fd28d2b3a3b787f13d6bc042d259d66ced2740",
+    "code_commit": "cc725cb75d4e5c337d44996084bbc4bb729b4f30",
+    "local_baseline_build": "not_executed_java8_no_sdk_no_cached_gradle",
+    "static_baseline_reproductions": 2,
+    "jvm_passed": 42,
+    "jvm_failed": 0,
+    "lint_errors": 0,
+    "lint_warnings": 66,
+    "lint_information": 1,
+    "debug_assembly": "pass",
+    "instrumented_assembly": "pass",
+    "instrumented_tests_passed": 4,
+    "instrumented_failed": 0,
+    "emulator": "Android 14 API34 x86_64 GitHub runner",
+    "real_audio_scope": "generated private PCM WAV decoded by Media3; local play and pause state only, no Icecast/reception/human listening",
+    "manifest": "ads provider and advertising permissions absent; backup false; system trust anchors; HTTPS only",
+    "release_without_secrets": "refused",
+    "http_configuration": "refused",
+    "jvm_ci": "https://github.com/nikodindon/nova-atlas-android/actions/runs/42522498673",
+    "emulator_ci": "https://github.com/nikodindon/nova-atlas-android/actions/runs/42522498675"
+  },
+  "not_tested": [
+    "physical smartphone API26",
+    "physical smartphone API34",
+    "recent physical smartphone",
+    "three smartphone campaign",
+    "battery and representative memory/CPU",
+    "screen off/lock/Doze",
+    "headphones/Bluetooth/audio focus on physical hardware",
+    "Wi-Fi/mobile transitions",
+    "real Icecast reception through RadioService",
+    "live advertisement or purchase",
+    "release signing with operator key"
+  ]
+}

@@ -59,6 +59,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -218,7 +219,7 @@ fun AppScreen(
     adManager: AdManager,
     subscriptionManager: SubscriptionManager,
 ) {
-    var currentTab by remember { mutableStateOf(Tab.Feed) }
+    var currentTab by rememberSaveable { mutableStateOf(Tab.Feed) }
     val isPlaying by player.isPlaying.collectAsState()
     val isPremium by subscriptionManager.isPremium.collectAsState()
 
@@ -344,7 +345,7 @@ private fun NewsFeedScreen() {
     val articles = state.articles
     val isLoading = state.refreshing
     val errorMsg = state.error
-    var selectedCategories by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var selectedCategories by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
     val filteredArticles = articles.filter { selectedCategories.isEmpty() || it.category in selectedCategories }
     val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
     LaunchedEffect(repository, lifecycleOwner) {
@@ -678,6 +679,7 @@ fun ArticleCard(article: Article) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),  // Pas d'ombre portee (sinon l'ombre grise mange le header)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
+            ApprovedImage(article.image)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Pastille categorie : couleur d'accent 8dp (scan visuel rapide)
                 val catColor = categoryColor(article.category)
@@ -689,8 +691,7 @@ fun ArticleCard(article: Article) {
                 )
                 Spacer(Modifier.width(6.dp))
                 // Emoji categorie (icone)
-                ApprovedImage(article.image)
-        Text(
+                Text(
                     text = "${CATEGORIES.firstOrNull { it.key == article.category }?.icon ?: "🌐"}",
                     style = MaterialTheme.typography.labelLarge,
                 )
@@ -761,7 +762,7 @@ fun ArticleCard(article: Article) {
  */
 private fun formatRelativeTime(timestamp: String?, pubDate: String?): String {
     // 1) Essayer le timestamp ISO interne (le plus fiable)
-    val date = parseNovaDate(timestamp) ?: parseRfc2822(pubDate) ?: return ""
+    val date = parseRfc2822(pubDate) ?: parseNovaDate(timestamp) ?: return pubDate.orEmpty()
 
     val now = System.currentTimeMillis()
     val diff = now - date.time
@@ -792,29 +793,7 @@ private fun formatRelativeTime(timestamp: String?, pubDate: String?): String {
 
 private fun parseNovaDate(iso: String?): java.util.Date? = reliableInstant(iso)?.let { java.util.Date.from(it) }
 
-private fun parseRfc2822(rfc: String?): java.util.Date? {
-    if (rfc.isNullOrBlank()) return null
-    // Format RSS typique: "Wed, 08 Jul 2026 05:52:29 GMT"
-    val months = arrayOf(
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    )
-    try {
-        // SimpleDateFormat thread-safe via synchronized
-        val sdf = java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", java.util.Locale.ENGLISH)
-        return sdf.parse(rfc)
-    } catch (e: Exception) {
-        // Try without leading day name
-        return try {
-            val parts = rfc.split(",", limit = 2)
-            val tail = if (parts.size == 2) parts[1].trim() else rfc
-            val sdf = java.text.SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", java.util.Locale.ENGLISH)
-            sdf.parse(tail)
-        } catch (e2: Exception) {
-            null
-        }
-    }
-}
+private fun parseRfc2822(value: String?): java.util.Date? = reliableInstant(value)?.let { java.util.Date.from(it) }
 
 // ─── Onglet Radio ────────────────────────────────────────────────────────────
 

@@ -19,6 +19,7 @@ class CompanionTest {
     private fun fixture(name: String) = javaClass.classLoader!!.getResource("contracts/$name.json")!!.readText()
     @Test fun legacyContract() { val r=ApiClient.json.decodeFromString<ArticlesResponse>(fixture("legacy")); assertEquals("ok",r.status); assertTrue(r.articles.isNotEmpty()) }
     @Test fun publicContract() { val r=ApiClient.json.decodeFromString<PublicArticles>(fixture("articles")); assertEquals("ok",r.status); assertTrue(r.articles.isNotEmpty()); assertNotNull(r.articles[0].legacy()) }
+    @Test fun approvedImageContract() { val r=ApiClient.json.decodeFromString<PublicArticles>(fixture("approved-articles")); val image=r.articles[0].image!!;assertFalse(image.fallback);assertEquals("CC BY 4.0",image.attribution!!.license);assertNotNull(SafeLinks.image(image));assertTrue(image.attribution.author.isNotBlank()) }
     @Test fun categoryContract() { val r=ApiClient.json.decodeFromString<SiteResponse>(fixture("site")); assertTrue(r.categories.isNotEmpty()); assertEquals("/stream/nova-android",r.streams["android"]) }
     @Test fun eventsContract() { val r=ApiClient.json.decodeFromString<EventsResponse>(fixture("events")); assertTrue(r.index_available); assertEquals(2,r.events[0].article_count); assertEquals(2,r.events[0].articles.size) }
     @Test fun eventContract() { assertEquals(2,ApiClient.json.decodeFromString<EventResponse>(fixture("event")).event.article_count) }

@@ -29,7 +29,6 @@ object ApiClient {
         .callTimeout(20, TimeUnit.SECONDS).followRedirects(false).followSslRedirects(false)
         .retryOnConnectionFailure(false).addInterceptor { chain ->
             val response = chain.proceed(chain.request())
-            if (response.code == 304 || !response.isSuccessful) return@addInterceptor response
             val body = response.body ?: return@addInterceptor response
             try {
                 if (body.contentLength() > 2 * 1024 * 1024) throw IOException("response_limit")

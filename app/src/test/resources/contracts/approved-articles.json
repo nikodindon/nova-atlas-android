@@ -1,0 +1,42 @@
+{
+  "articles": [
+    {
+      "category": "france",
+      "hash": "6401d9f6570aed94888c57a092934014",
+      "id": "d8b8985994fb4773fc494db45aed7495840d9a225837c4e2342f9d629e508884",
+      "image": {
+        "attribution": {
+          "author": "Synthetic fixture author",
+          "changes": "Redimensionnement, orientation corrigée et réencodage JPEG ; métadonnées supprimées.",
+          "credit": "Generated geometry fixture",
+          "license": "CC BY 4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "source": "https://commons.wikimedia.org/wiki/File:Synthetic_RC_fixture.png"
+        },
+        "caption": "Illustration générique — Illustration générique",
+        "fallback": false,
+        "height": 36,
+        "large_url": "/media/images/210631da4f448c1cec68a93a115507948ccae004aeea96adbcdc1d4e9f59ee52/768.jpg",
+        "url": "/media/images/210631da4f448c1cec68a93a115507948ccae004aeea96adbcdc1d4e9f59ee52/320.jpg",
+        "width": 64
+      },
+      "language": null,
+      "link": null,
+      "observed_at": null,
+      "observed_raw": "2026-11-08T20:33:20.575691",
+      "original_title": "日本語 العربية",
+      "publication_status": "aware",
+      "published_at": "2026-11-08T20:33:20.575691+00:00",
+      "published_raw": "2026-11-08T20:33:20.575691+00:00",
+      "source": "Média 0",
+      "summary": "Le ministre Martin annonce sa démission du gouvernement français après le vote parlementaire. Les élus commentent cette démission.",
+      "title": "日本語 العربية"
+    }
+  ],
+  "date": "20261108",
+  "observed_at": "2026-11-08T20:33:20.689455+00:00",
+  "page": 1,
+  "per_page": 20,
+  "status": "ok",
+  "total": 1
+}

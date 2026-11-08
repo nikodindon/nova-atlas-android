@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val environment = providers.gradleProperty("ATLAS_ENV").getOrElse("isolated")
+require(environment in listOf("isolated", "preproduction", "release"))
 val origin = providers.gradleProperty("ATLAS_ORIGIN").getOrElse("https://example.invalid/")
 
 android {
@@ -46,6 +48,7 @@ android {
         all {
             buildConfigField("String", "API_ORIGIN", "\"${origin.trimEnd('/')}/\"")
             buildConfigField("String", "RADIO_STREAM_URL", "\"$radio\"")
+            buildConfigField("String", "ENVIRONMENT", "\"$environment\"")
             buildConfigField("boolean", "ADS_ENABLED", "false")
             buildConfigField("boolean", "PREMIUM_ENABLED", "false")
         }
@@ -120,6 +123,7 @@ gradle.taskGraph.whenReady {
         val required = listOf("RELEASE_KEYSTORE_PATH", "RELEASE_STORE_PASSWORD", "RELEASE_KEY_ALIAS", "RELEASE_KEY_PASSWORD")
         require(required.all { !System.getenv(it).isNullOrBlank() }) { "Release requires explicit private signing configuration" }
         require(file(System.getenv("RELEASE_KEYSTORE_PATH")).isFile) { "Release keystore missing" }
+        require(environment == "release") { "Release requires ATLAS_ENV=release" }
         require(!origin.contains("example.invalid")) { "Release requires explicit server configuration" }
     }
 }

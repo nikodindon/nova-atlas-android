@@ -20,7 +20,7 @@ jobs:
           packages: platform-tools
       - run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
       - run: python3 tools/security_check.py
-      - run: ./gradlew testDebugUnitTest assembleDebug lintDebug --stacktrace
+      - run: ./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest lintDebug --stacktrace
       - name: Release fails closed without private signing
         run: |
           if ./gradlew assembleRelease > release-refusal.txt 2>&1; then

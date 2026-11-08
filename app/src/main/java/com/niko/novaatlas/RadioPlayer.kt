@@ -83,7 +83,6 @@ class RadioPlayer(private val context: Context) {
         // On ne touche plus _isPlaying ici : c'est le Player.Listener qui
         // fait foi quand l'etat reel change (sinon UI dit "playing" mais
         // le player distant est encore en pause = bug play apres pause).
-        controller?.prepare()
         controller?.playWhenReady = true
     }
 

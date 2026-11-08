@@ -31,9 +31,10 @@ class RadioService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
+        val embargo = RadioEmbargo()
         val http = OkHttpDataSource.Factory(OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).connectTimeout(10,TimeUnit.SECONDS).readTimeout(15,TimeUnit.SECONDS).build())
         val player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(DefaultMediaSourceFactory(this).setDataSourceFactory(http).setLoadErrorHandlingPolicy(RadioRetryPolicy()))
+            .setMediaSourceFactory(DefaultMediaSourceFactory(this).setDataSourceFactory(http).setLoadErrorHandlingPolicy(RadioRetryPolicy(embargo)))
             // Le stream est de la musique (classifie "media" par Android, priorite
             // audio correcte, duck sur notifs/Calls)
             .setAudioAttributes(
@@ -66,6 +67,7 @@ class RadioService : MediaSessionService() {
         // No connection before explicit Play; Stop cancels a pending load/retry.
         player.addListener(object: Player.Listener {
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (playWhenReady && !embargo.allowed()) { player.pause(); return }
                 if (!playWhenReady) player.stop()
                 else if (player.playbackState == Player.STATE_IDLE) player.prepare()
             }

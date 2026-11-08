@@ -16,14 +16,26 @@ fun radioRetryDelay(count: Int, status: Int? = null, retry: String? = null, now:
     if (imposed != null && imposed > 60) return C.TIME_UNSET
     return maxOf(delay, (imposed ?: 0)*1000)
 }
+class RadioEmbargo(private val clock: () -> Long = System::currentTimeMillis) {
+    private val deadline = java.util.concurrent.atomic.AtomicLong(0)
+    fun record(value: String?) {
+        val seconds = retryAfter(value,clock()) ?: return
+        val now=clock()
+        val until=if (seconds > (Long.MAX_VALUE-now)/1000) Long.MAX_VALUE else now+seconds*1000
+        deadline.updateAndGet { maxOf(it,until) }
+    }
+    fun allowed() = clock() >= deadline.get()
+}
 @androidx.annotation.OptIn(UnstableApi::class)
-class RadioRetryPolicy: DefaultLoadErrorHandlingPolicy(4) {
+class RadioRetryPolicy(private val embargo: RadioEmbargo = RadioEmbargo()): DefaultLoadErrorHandlingPolicy(4) {
     override fun getRetryDelayMsFor(info: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
         val error = info.exception
         val http = error as? HttpDataSource.InvalidResponseCodeException
         var cause: Throwable? = error
         var tls = false
         repeat(8) { if (cause is SSLException) tls=true; cause=cause?.cause }
-        return radioRetryDelay(info.errorCount,http?.responseCode,http?.headerFields?.entries?.firstOrNull { it.key.equals("Retry-After",true) }?.value?.firstOrNull(),tls=tls)
+        val header=http?.headerFields?.entries?.firstOrNull { it.key.equals("Retry-After",true) }?.value?.firstOrNull()
+        if (http?.responseCode == 429) embargo.record(header)
+        return radioRetryDelay(info.errorCount,http?.responseCode,header,tls=tls)
     }
 }

@@ -45,7 +45,7 @@ class RadioPlayer(private val context: Context) {
     private val playerListener = object : Player.Listener {
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) { mutableRequested.value=playWhenReady }
         override fun onPlayerError(error: PlaybackException) { controller?.pause(); controller?.stop(); mutableRequested.value=false; mutableStatus.value = "error" }
-        override fun onPlaybackStateChanged(state: Int) { mutableStatus.value = when(state) { Player.STATE_BUFFERING -> "buffering"; Player.STATE_READY -> "ready"; else -> "idle" } }
+        override fun onPlaybackStateChanged(state: Int) { mutableStatus.value = when(state) { Player.STATE_BUFFERING -> "buffering"; Player.STATE_READY -> "ready"; Player.STATE_ENDED -> "reconnecting_or_ended"; else -> "idle" } }
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _isPlaying.value = isPlaying
         }

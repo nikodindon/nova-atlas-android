@@ -125,7 +125,7 @@ Pause/stop annule le chargement et les reprises, Play prépare explicitement.
 Politique de chargement unique (pas de second scheduler de reconnexion) : quatre
 reprises maximum, 3/6/12/24 s, 401/402/403/404/410 et TLS non retentés ; 429 respecte
 Retry-After jusqu'à 60 s, au-delà arrêt explicite plutôt que raccourcir l'embargo.
-Après épuisement : état erreur et nouvelle action Play nécessaire après embargo ; le délai 429 est aussi contrôlé avant une relance manuelle tant que le service vit (non persistant au redémarrage du processus). Aucune reprise
+Une fin de flux propre (EOF) a une reprise distincte 3/6/12/24 s, au maximum quatre prepares par action Play ; Pause détruit les callbacks. Elle ne réessaie pas une erreur HTTP terminale. Après épuisement : état erreur/fin et nouvelle action Play nécessaire après embargo ; le délai 429 est aussi contrôlé avant une relance manuelle tant que le service vit (non persistant au redémarrage du processus). Aucune reprise
 qui force playWhenReady=true après Pause. Pas de garantie d'auditeur, de réception
 continue, ni de test réel Wi-Fi/mobile/Bluetooth à partir de ces doubles.
 Le bouton affiche les états buffering/ready/error observés ; isPlaying décrit le

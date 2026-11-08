@@ -39,3 +39,10 @@ class RadioRetryPolicy(private val embargo: RadioEmbargo = RadioEmbargo()): Defa
         return radioRetryDelay(info.errorCount,http?.responseCode,header,tls=tls)
     }
 }
+
+/** EOF is distinct from HTTP load errors: at most four prepares per user session. */
+class RadioEndRecovery {
+    private var attempts=0
+    fun reset() { attempts=0 }
+    fun nextDelay(): Long? { if (attempts>=4) return null; return 3_000L shl attempts++ }
+}

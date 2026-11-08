@@ -26,6 +26,8 @@ import androidx.media3.session.MediaSessionService
 @androidx.annotation.OptIn(UnstableApi::class)
 class RadioService : MediaSessionService() {
 
+    private val recoveryHandler=android.os.Handler(android.os.Looper.getMainLooper())
+    private val endRecovery=RadioEndRecovery()
     private var mediaSession: MediaSession? = null
 
     override fun onCreate() {
@@ -66,10 +68,21 @@ class RadioService : MediaSessionService() {
         player.setMediaItem(item)
         // No connection before explicit Play; Stop cancels a pending load/retry.
         player.addListener(object: Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state != Player.STATE_ENDED || !player.playWhenReady) return
+                val wait=endRecovery.nextDelay()
+                if (wait == null || !embargo.allowed()) { player.pause(); return }
+                recoveryHandler.removeCallbacksAndMessages(null)
+                recoveryHandler.postDelayed({
+                    if (player.playWhenReady && player.playbackState == Player.STATE_ENDED && embargo.allowed()) {
+                        player.seekToDefaultPosition(); player.prepare()
+                    }
+                },wait)
+            }
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                 if (playWhenReady && !embargo.allowed()) { player.pause(); return }
-                if (!playWhenReady) player.stop()
-                else if (player.playbackState == Player.STATE_IDLE) player.prepare()
+                if (!playWhenReady) { recoveryHandler.removeCallbacksAndMessages(null); player.stop() }
+                else if (player.playbackState == Player.STATE_IDLE) { endRecovery.reset(); player.prepare() }
             }
         })
 
@@ -88,6 +101,7 @@ class RadioService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        recoveryHandler.removeCallbacksAndMessages(null)
         mediaSession?.run {
             player.release()
             release()

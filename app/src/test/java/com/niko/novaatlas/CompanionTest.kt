@@ -35,6 +35,7 @@ class CompanionTest {
     @Test fun revokedAndUnknownImages() { assertNull(SafeLinks.image(PublicImage("/media/images/x/320.jpg",true))); assertNull(SafeLinks.image(PublicImage("/media/images/x/320.jpg",false))); assertNotNull(SafeLinks.image(PublicImage("/media/images/x/320.jpg",false,attribution=Attribution(license="CC BY 4.0")))) }
     @Test fun retryAfterValues() { assertEquals(120L,retryAfter("120",0)); assertNull(retryAfter("bad",0)); assertEquals(60L,retryAfter("Thu, 1 Jan 1970 00:01:00 GMT",0)) }
     @Test fun radioEmbargoBlocksManualPlay() { var now=0L;val embargo=RadioEmbargo{now};embargo.record("600");assertFalse(embargo.allowed());now=599999;assertFalse(embargo.allowed());now=600000;assertTrue(embargo.allowed()) }
+    @Test fun eofRecoveryBounded() { val p=RadioEndRecovery();assertEquals(listOf(3000L,6000L,12000L,24000L),(1..4).map{p.nextDelay()});assertNull(p.nextDelay());p.reset();assertEquals(3000L,p.nextDelay()) }
     @Test fun radioBounded() { assertEquals(3000L,radioRetryDelay(1)); assertEquals(24000L,radioRetryDelay(4)); assertEquals(androidx.media3.common.C.TIME_UNSET,radioRetryDelay(5)) }
     @Test fun radioFatal() { listOf(401,403,404,410).forEach { assertEquals(androidx.media3.common.C.TIME_UNSET,radioRetryDelay(1,it)) }; assertEquals(androidx.media3.common.C.TIME_UNSET,radioRetryDelay(1,tls=true)) }
     @Test fun radioEmbargo() { assertEquals(30000L,radioRetryDelay(1,429,"30")); assertEquals(androidx.media3.common.C.TIME_UNSET,radioRetryDelay(1,429,"600")) }

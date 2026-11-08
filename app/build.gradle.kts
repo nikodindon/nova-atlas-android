@@ -1,9 +1,13 @@
+import java.net.URI
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
+
+val origin = providers.gradleProperty("ATLAS_ORIGIN").getOrElse("https://example.invalid/")
 
 android {
     namespace = "com.niko.novaatlas"
@@ -20,16 +24,15 @@ android {
 
         manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
     }
-    val origin = providers.gradleProperty("ATLAS_ORIGIN").getOrElse("https://example.invalid/")
     val radio = providers.gradleProperty("ATLAS_RADIO").getOrElse("https://example.invalid/stream/nova-android")
     fun checked(value: String): String {
-        val uri = java.net.URI(value)
+        val uri = URI(value)
         require(uri.scheme == "https" && uri.host != null && uri.rawUserInfo == null && uri.rawQuery == null && uri.rawFragment == null) { "Explicit HTTPS endpoint required" }
         require(value.none { it == '"' || it == '\\' || it.code < 32 })
         return value
     }
     checked(origin); checked(radio)
-    require(java.net.URI(origin).path in listOf("", "/")) { "ATLAS_ORIGIN must be an origin" }
+    require(URI(origin).path in listOf("", "/")) { "ATLAS_ORIGIN must be an origin" }
     signingConfigs {
         create("release") {
             val path = providers.environmentVariable("RELEASE_KEYSTORE_PATH").orNull

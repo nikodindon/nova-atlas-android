@@ -7,6 +7,9 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+apply(from = rootProject.file("gradle/release-endpoints.gradle.kts"))
+apply(from = rootProject.file("gradle/companion-sbom.gradle.kts"))
+
 val environment = providers.gradleProperty("ATLAS_ENV").getOrElse("isolated")
 require(environment in listOf("isolated", "preproduction", "release"))
 val origin = providers.gradleProperty("ATLAS_ORIGIN").getOrElse("https://example.invalid/")
@@ -124,6 +127,5 @@ gradle.taskGraph.whenReady {
         require(required.all { !System.getenv(it).isNullOrBlank() }) { "Release requires explicit private signing configuration" }
         require(file(System.getenv("RELEASE_KEYSTORE_PATH")).isFile) { "Release keystore missing" }
         require(environment == "release") { "Release requires ATLAS_ENV=release" }
-        require(!origin.contains("example.invalid")) { "Release requires explicit server configuration" }
     }
 }

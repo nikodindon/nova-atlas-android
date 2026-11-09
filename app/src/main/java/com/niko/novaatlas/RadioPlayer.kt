@@ -80,6 +80,7 @@ class RadioPlayer(private val context: Context) {
     }
 
     fun play() {
+        RadioTelemetry.observations.record(RadioObservation.PLAY_REQUESTED)
         // On ne touche plus _isPlaying ici : c'est le Player.Listener qui
         // fait foi quand l'etat reel change (sinon UI dit "playing" mais
         // le player distant est encore en pause = bug play apres pause).
@@ -87,6 +88,7 @@ class RadioPlayer(private val context: Context) {
     }
 
     fun pause() {
+        RadioTelemetry.observations.record(RadioObservation.PAUSE_REQUESTED)
         controller?.pause()
         controller?.stop()
         mutableStatus.value = "idle"

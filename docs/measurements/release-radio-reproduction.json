@@ -1,0 +1,5 @@
+{
+  "baseline": "0bf4ba0dcbedf62521ae6daebaca9b703e7c1354",
+  "evidence": "Release checks origin only; radio defaults to example.invalid and is not checked for placeholder host. Signing credentials not used.",
+  "scope": "static confirmed missing guard; no release artifact generated"
+}

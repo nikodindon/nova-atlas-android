@@ -20,7 +20,7 @@ jobs:
           packages: platform-tools
       - run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
       - run: python3 tools/security_check.py
-      - run: ./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest lintDebug --stacktrace
+      - run: ./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest lintDebug companionSbom --stacktrace
       - run: python3 tools/check_manifest.py
       - name: Release fails closed without private signing
         run: |
@@ -34,6 +34,17 @@ jobs:
             echo 'Unexpected HTTP configuration success'; exit 1
           fi
           grep -q 'Explicit HTTPS endpoint required' http-refusal.txt
+      - name: Release rejects placeholder radio independently of signing
+        run: |
+          if ./gradlew help -PATLAS_ENV=release -PATLAS_ORIGIN=https://atlas.operator.net/ > radio-refusal.txt 2>&1; then
+            echo 'Unexpected placeholder radio success'; exit 1
+          fi
+          grep -q 'Release requires non-placeholder HTTPS API and radio endpoints' radio-refusal.txt
+          if ./gradlew help -PATLAS_ENV=release -PATLAS_ORIGIN=https://atlas.operator.net/ -PATLAS_RADIO=https://EXAMPLE.INVALID./stream/nova > radio-case-refusal.txt 2>&1; then
+            echo 'Unexpected case bypass success'; exit 1
+          fi
+          grep -q 'Release requires non-placeholder HTTPS API and radio endpoints' radio-case-refusal.txt
+      - run: python3 tools/scan_sbom.py
       - run: ./gradlew :app:dependencies --configuration debugRuntimeClasspath > dependency-report.txt
       - uses: actions/upload-artifact@v4
         if: always()

@@ -30,7 +30,9 @@ vérifiés séparément. Aucun APK release, keystore opérateur ou upload Play.
 ## Observations radio privées
 
 En debug, le bouton « Exporter les observations radio » ouvre le sélecteur de
-document Android. Export seulement sur geste explicite, pas de télémétrie envoyée.
+document Android. Export seulement sur geste explicite vers la destination choisie ; préférer un
+stockage privé local, un fournisseur de documents cloud peut transférer le fichier.
+Aucune télémétrie automatique.
 Version1, horloge monotone, anneau de 128 événements et compteurs bornés en mémoire.
 La disparition du processus perd ces données ; conserver un export avant incident
 quand possible. Aucun URL, identifiant Android, numéro de série, SSID, adresse,

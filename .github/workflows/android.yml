@@ -54,3 +54,4 @@ jobs:
             app/build/reports/
             dependency-report.txt
             manifest-validation.json
+            !app/build/reports/sbom/tools/**

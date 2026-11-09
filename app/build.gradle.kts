@@ -112,6 +112,8 @@ dependencies {
     implementation("androidx.media3:media3-datasource-okhttp:1.4.1")
     implementation(libs.media3.ui)
     implementation(libs.media3.session)
+    // Targeted fix for GHSA-xxph-c9ww-hj94; no broad dependency upgrade.
+    implementation("com.google.guava:guava:33.7.2-android")
 
     // Nova-Atlas - images
     implementation(libs.coil.compose)

@@ -3,7 +3,10 @@ import os,json,subprocess
 from pathlib import Path
 from security_tools import install,summarize
 if os.environ.get('GITHUB_ACTIONS')!='true':raise SystemExit('Disposable CI only')
-root=Path('app/build/reports/sbom');tools=install(root/'tools')
+root=Path('app/build/reports/sbom')
+bom=json.loads((root/'android.cdx.json').read_text())
+assert any(c.get('group')=='com.google.guava' and c.get('name')=='guava' and c.get('version')=='33.7.2-android' for c in bom['components']), 'Guava patch not resolved'
+tools=install(root/'tools')
 def command(args):return subprocess.check_output(args,text=True,timeout=1200)
 versions={name:json.loads(command([path,'version','-o','json'])) for name,path in tools.items()}
 raw=command([tools['grype'],'sbom:'+str(root/'android.cdx.json'),'-o','json']);(root/'grype.json').write_text(raw)

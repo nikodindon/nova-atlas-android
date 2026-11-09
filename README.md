@@ -30,3 +30,6 @@ référence, contrats réels, sécurité, limites radio, résultats CI, matrice 
 configuration de signature, confidentialité et rollback. Les tests JVM ne constituent
 pas une validation smartphone. Tests composants instrumentés :
 `./gradlew connectedDebugAndroidTest` sur émulateur/appareil de test explicite.
+
+Le [dossier terrain Sprint 15](docs/FIELD_QUALIFICATION.md) décrit les observations
+radio privées, le SBOM transitif et les qualifications physiques encore absentes.

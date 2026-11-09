@@ -1,0 +1,15 @@
+{
+  "advisory": "GHSA-xxph-c9ww-hj94",
+  "cve": "CVE-2026-102554",
+  "before": "com.google.guava:guava:33.0.0-android",
+  "after": "com.google.guava:guava:33.7.2-android",
+  "scanner_severity": "High",
+  "vendor_severity": "Moderate",
+  "classification": "confirmed_affected_dependency_version; runtime exploitability not established",
+  "evidence": "126 resolved Maven components, Grype 0.121.2 database v6.1.10 built 2026-11-08T06:19:57Z",
+  "prerequisite": "Java native deserialization of attacker-controlled Guava collection state; public app APIs use Kotlinx JSON, no proof of absence in every packaged SDK",
+  "fix": "targeted Android flavor upgrade; verify resolved SBOM, JVM and emulator tests",
+  "source": "https://github.com/google/guava/security/advisories/GHSA-xxph-c9ww-hj94",
+  "suppressed": false,
+  "public_release_authorized": false
+}

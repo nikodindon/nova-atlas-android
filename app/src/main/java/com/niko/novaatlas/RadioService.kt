@@ -2,6 +2,9 @@ package com.niko.novaatlas
 
 import android.content.Intent
 import androidx.media3.common.Player
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.TransferListener
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
@@ -34,7 +37,13 @@ class RadioService : MediaSessionService() {
         super.onCreate()
 
         val embargo = RadioEmbargo()
-        val http = OkHttpDataSource.Factory(OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).connectTimeout(10,TimeUnit.SECONDS).readTimeout(15,TimeUnit.SECONDS).build())
+        val transfer=object: TransferListener {
+            override fun onTransferInitializing(source: DataSource, spec: DataSpec, network: Boolean) {}
+            override fun onTransferStart(source: DataSource, spec: DataSpec, network: Boolean) { if(network) RadioTelemetry.observations.record(RadioObservation.CONNECTION_OPEN) }
+            override fun onBytesTransferred(source: DataSource, spec: DataSpec, network: Boolean, count: Int) { if(network) RadioTelemetry.observations.transferred(count) }
+            override fun onTransferEnd(source: DataSource, spec: DataSpec, network: Boolean) { if(network) RadioTelemetry.observations.record(RadioObservation.NETWORK_TRANSFER_ENDED) }
+        }
+        val http = OkHttpDataSource.Factory(OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).connectTimeout(10,TimeUnit.SECONDS).readTimeout(15,TimeUnit.SECONDS).build()).setTransferListener(transfer)
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(this).setDataSourceFactory(http).setLoadErrorHandlingPolicy(RadioRetryPolicy(embargo)))
             // Le stream est de la musique (classifie "media" par Android, priorite
@@ -49,6 +58,7 @@ class RadioService : MediaSessionService() {
             .build()
             .apply { playWhenReady = false }
 
+        RadioTelemetry.observations.record(RadioObservation.PLAYER_CREATED)
         val streamUri = BuildConfig.RADIO_STREAM_URL
 
         // MediaMetadata permet au systeme d'afficher "Nova-Atlas - Web Radio"
@@ -68,11 +78,16 @@ class RadioService : MediaSessionService() {
         player.setMediaItem(item)
         // No connection before explicit Play; Stop cancels a pending load/retry.
         player.addListener(object: Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) { RadioTelemetry.observations.record(if(playing) RadioObservation.LOCAL_PLAYBACK_STARTED else RadioObservation.LOCAL_PLAYBACK_STOPPED) }
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) { RadioTelemetry.observations.record(RadioObservation.TERMINAL_ERROR,error.errorCode.toLong()) }
             override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_BUFFERING) RadioTelemetry.observations.record(RadioObservation.BUFFERING)
+                if (state == Player.STATE_ENDED) RadioTelemetry.observations.record(RadioObservation.CLEAN_END)
                 if (state != Player.STATE_ENDED || !player.playWhenReady) return
                 val wait=endRecovery.nextDelay()
                 if (wait == null || !embargo.allowed()) { player.pause(); return }
                 recoveryHandler.removeCallbacksAndMessages(null)
+                RadioTelemetry.observations.record(RadioObservation.RECONNECT_SCHEDULED,wait)
                 recoveryHandler.postDelayed({
                     if (player.playWhenReady && player.playbackState == Player.STATE_ENDED && embargo.allowed()) {
                         player.seekToDefaultPosition(); player.prepare()
@@ -80,6 +95,7 @@ class RadioService : MediaSessionService() {
                 },wait)
             }
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                RadioTelemetry.observations.record(if(playWhenReady) RadioObservation.SESSION_PLAY_INTENT else RadioObservation.SESSION_PAUSE_INTENT)
                 if (playWhenReady && !embargo.allowed()) { player.pause(); return }
                 if (!playWhenReady) { recoveryHandler.removeCallbacksAndMessages(null); player.stop() }
                 else if (player.playbackState == Player.STATE_IDLE) { endRecovery.reset(); player.prepare() }
@@ -104,6 +120,7 @@ class RadioService : MediaSessionService() {
         recoveryHandler.removeCallbacksAndMessages(null)
         mediaSession?.run {
             player.release()
+            RadioTelemetry.observations.record(RadioObservation.PLAYER_RELEASED)
             release()
         }
         mediaSession = null

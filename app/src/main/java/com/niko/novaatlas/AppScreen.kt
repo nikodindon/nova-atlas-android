@@ -800,6 +800,9 @@ private fun parseRfc2822(value: String?): java.util.Date? = reliableInstant(valu
 private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Boolean) {
     val context = LocalContext.current
     val activity = context as? androidx.activity.ComponentActivity
+    val diagnosticExport=androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if(uri != null) runCatching { context.contentResolver.openOutputStream(uri)?.use { it.write(RadioTelemetry.observations.export().toByteArray()) } }
+    }
     val radioStatus by player.status.collectAsState()
     val isPlaying by player.isPlaying.collectAsState()
     val requested by player.requested.collectAsState()
@@ -868,6 +871,7 @@ private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Bo
             }
         }
 
+        if (BuildConfig.DEBUG) androidx.compose.material3.TextButton(onClick={ diagnosticExport.launch("nova-radio-diagnostics.json") }) { Text("Exporter les observations radio") }
         Spacer(Modifier.height(16.dp))
         Text(
             text = if (isPlaying) "Lecture locale active" else "Radio : $radioStatus — appuyez pour lire",

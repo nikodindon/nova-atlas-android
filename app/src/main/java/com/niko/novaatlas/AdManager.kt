@@ -27,10 +27,11 @@ class AdManager(private val context: Context) {
     private val lastShownMs = AtomicLong(0L)
 
     init {
-        loadAd()
+        if (BuildConfig.ADS_ENABLED) loadAd()
     }
 
     private fun loadAd() {
+        if (!BuildConfig.ADS_ENABLED) return
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(
             context,
@@ -72,7 +73,7 @@ class AdManager(private val context: Context) {
                 // Pub fermee par l'utilisateur : on stream la radio
                 preloadedAd = null
                 lastShownMs.set(System.currentTimeMillis())
-                loadAd()  // precharger la suivante
+                if (BuildConfig.ADS_ENABLED) loadAd()  // precharger la suivante
                 onComplete()
             }
 
@@ -90,6 +91,6 @@ class AdManager(private val context: Context) {
         private const val TAG = "AdManager"
         // Ad Unit ID du compte niko (nikodindon@gmail.com), bloc radio_play_interstitial
         // Cree le 2026-07-09 dans l'app Nova-Atlas.
-        private const val AD_UNIT_ID = "ca-app-pub-2776142788958553/2751036399"
+        private const val AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
     }
 }

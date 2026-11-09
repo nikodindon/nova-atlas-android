@@ -1,0 +1,34 @@
+{
+  "articles": [
+    {
+      "category": "france",
+      "hash": "6401d9f6570aed94888c57a092934014",
+      "id": "0d89e0a806a43e1454f3b9ac58d2e488e1b8f8d9088966e5f62549997a9f5cc9",
+      "image": {
+        "attribution": null,
+        "caption": "Illustration indisponible",
+        "fallback": true,
+        "height": 180,
+        "url": "/assets/news-fallback.svg",
+        "width": 320
+      },
+      "language": null,
+      "link": null,
+      "observed_at": null,
+      "observed_raw": "2026-11-08T20:29:34.674458",
+      "original_title": "日本語 العربية",
+      "publication_status": "aware",
+      "published_at": "2026-11-08T20:29:34.674458+00:00",
+      "published_raw": "2026-11-08T20:29:34.674458+00:00",
+      "source": "Média 0",
+      "summary": "Le ministre Martin annonce sa démission du gouvernement français après le vote parlementaire. Les élus commentent cette démission.",
+      "title": "日本語 العربية"
+    }
+  ],
+  "date": "20261108",
+  "observed_at": "2026-11-08T20:29:34.690557+00:00",
+  "page": 1,
+  "per_page": 20,
+  "status": "ok",
+  "total": 1
+}

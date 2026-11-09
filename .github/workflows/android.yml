@@ -1,0 +1,45 @@
+name: Android companion
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          validate-wrappers: true
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
+      - run: python3 tools/security_check.py
+      - run: ./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest lintDebug --stacktrace
+      - run: python3 tools/check_manifest.py
+      - name: Release fails closed without private signing
+        run: |
+          if ./gradlew assembleRelease > release-refusal.txt 2>&1; then
+            echo 'Unexpected release success'; exit 1
+          fi
+          grep -q 'Release requires explicit private signing configuration' release-refusal.txt
+      - name: HTTP endpoints fail closed
+        run: |
+          if ./gradlew help -PATLAS_ORIGIN=http://127.0.0.1/ > http-refusal.txt 2>&1; then
+            echo 'Unexpected HTTP configuration success'; exit 1
+          fi
+          grep -q 'Explicit HTTPS endpoint required' http-refusal.txt
+      - run: ./gradlew :app:dependencies --configuration debugRuntimeClasspath > dependency-report.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-validation
+          path: |
+            app/build/reports/
+            dependency-report.txt
+            manifest-validation.json

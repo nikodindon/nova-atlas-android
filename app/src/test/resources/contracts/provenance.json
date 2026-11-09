@@ -1,0 +1,5 @@
+{
+  "server_commit": "0e8752622bbbe16cf9b3b187bb7d69a9b1e4533b",
+  "android_baseline": "d6fd28d2b3a3b787f13d6bc042d259d66ced2740",
+  "method": "Flask test client, synthetic fixtures, no server/network started"
+}

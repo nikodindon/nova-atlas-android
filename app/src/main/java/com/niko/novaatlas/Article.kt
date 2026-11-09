@@ -17,6 +17,7 @@ data class Article(
     val source: String? = null,
     val pub_date: String? = null,
     val summary: String? = null,
+    val image: PublicImage? = null,
 )
 
 /**

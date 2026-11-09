@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition { false }
 
-        MobileAds.initialize(this) {}
+        if (BuildConfig.ADS_ENABLED) MobileAds.initialize(this) {}
         super.onCreate(savedInstanceState)
 
         // Edge-to-edge avec status bar noire opaque (scrim noir).
@@ -57,5 +57,6 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         player.release()
+        subscriptionManager.close()
     }
 }

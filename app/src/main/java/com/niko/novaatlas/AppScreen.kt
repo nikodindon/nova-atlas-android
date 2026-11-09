@@ -59,6 +59,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -107,6 +108,7 @@ import com.niko.novaatlas.ui.theme.NovaTextDim
 import com.niko.novaatlas.ui.theme.NovaTextMuted
 import com.niko.novaatlas.ui.theme.NovaTextPrimary
 import com.niko.novaatlas.ui.theme.NovaTextSecondary
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -138,6 +140,7 @@ private val CATEGORIES = listOf(
 enum class Tab(val label: String) {
     Feed("Fil d'actu"),
     Radio("Radio"),
+    Events("Événements"),
 }
 
 /**
@@ -216,7 +219,7 @@ fun AppScreen(
     adManager: AdManager,
     subscriptionManager: SubscriptionManager,
 ) {
-    var currentTab by remember { mutableStateOf(Tab.Feed) }
+    var currentTab by rememberSaveable { mutableStateOf(Tab.Feed) }
     val isPlaying by player.isPlaying.collectAsState()
     val isPremium by subscriptionManager.isPremium.collectAsState()
 
@@ -255,6 +258,7 @@ fun AppScreen(
             ) {
                 when (currentTab) {
                     Tab.Feed -> NewsFeedScreen()
+                    Tab.Events -> EventsScreen()
                     Tab.Radio -> RadioScreen(player = player, adManager = adManager, isPremium = isPremium)
                 }
             }
@@ -273,6 +277,7 @@ private fun BottomNav(
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
+        NavigationBarItem(selected = currentTab == Tab.Events, onClick = { onTabSelected(Tab.Events) }, icon = { Text("◉") }, label = { Text("Événements") })
         NavigationBarItem(
             selected = currentTab == Tab.Feed,
             onClick = { onTabSelected(Tab.Feed) },
@@ -334,40 +339,19 @@ private fun BottomNav(
 
 @Composable
 private fun NewsFeedScreen() {
-    val scope = rememberCoroutineScope()
-    var articles by remember { mutableStateOf<List<Article>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMsg by remember { mutableStateOf<String?>(null) }
-    var lastRefresh by remember { mutableStateOf<Long>(0L) }
-    var selectedCategories by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    // Filtre derive : si selectedCategories est vide, on garde tout ; sinon on filtre
-    val filteredArticles by remember {
-        derivedStateOf {
-            if (selectedCategories.isEmpty()) articles
-            else articles.filter { it.category in selectedCategories }
+    val repository = remember { NewsRepository(ApiClient.api) }
+    val state by repository.state.collectAsState()
+    val articles = state.articles
+    val isLoading = state.refreshing
+    val errorMsg = state.error
+    var selectedCategories by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
+    val filteredArticles = articles.filter { selectedCategories.isEmpty() || it.category in selectedCategories }
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    LaunchedEffect(repository, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            repository.observe()
         }
     }
-
-    // Refresh toutes les 2s, comme le site Flask
-    LaunchedEffect(Unit) {
-        while (true) {
-            scope.launch {
-                try {
-                    val response = ApiClient.api.getArticles(limit = 50)
-                    articles = response.articles
-                    errorMsg = null
-                    lastRefresh = System.currentTimeMillis()
-                } catch (e: Exception) {
-                    errorMsg = "Erreur chargement: ${e.message}"
-                } finally {
-                    isLoading = false
-                }
-            }
-            delay(2000)
-        }
-    }
-
     Column(modifier = Modifier.fillMaxSize().background(NovaBg0)) {
         // Signature visuelle : masthead "Nova-Atlas" (style journal centre)
         NovaMasthead()
@@ -378,8 +362,15 @@ private fun NewsFeedScreen() {
             breakingArticles = articles.take(8),  // Top 8 pour le ticker
         )
 
+        Row {
+            IconButton(onClick = { repository.requestRefresh() }, enabled = !isLoading) {
+                Icon(Icons.Filled.Refresh, contentDescription = "Actualiser")
+            }
+            Text(if (errorMsg != null) "Données anciennes — $errorMsg" else state.observedAt?.let { "Dernière lecture : " + java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalTime().withNano(0) } ?: "Chargement")
+        }
         // Filtres categories (chips multi-select cumulatifs)
         CategoryFilterBar(
+            categories = if (state.categories.isEmpty()) articles.map { it.category }.distinct().map { Category(it,it,"🌐") } else state.categories.map { Category(it.id,it.name,it.icon ?: "🌐") },
             selected = selectedCategories,
             onToggle = { cat ->
                 selectedCategories = if (cat in selectedCategories) {
@@ -625,6 +616,7 @@ private fun BreakingTicker(articles: List<Article>) {
 
 @Composable
 private fun CategoryFilterBar(
+    categories: List<Category>,
     selected: Set<String>,
     onToggle: (String) -> Unit,
     onClear: () -> Unit,
@@ -645,7 +637,7 @@ private fun CategoryFilterBar(
                 ),
             )
         }
-        items(CATEGORIES) { cat ->
+        items(categories) { cat ->
             val isSelected = cat.key in selected
             // Chip selectionne prend la couleur de la categorie (au lieu de jaune uniforme)
             val selColor = categoryColor(cat.key)
@@ -672,11 +664,11 @@ fun ArticleCard(article: Article) {
     val context = LocalContext.current
     // Tap sur le titre = ouvre l'article dans le navigateur
     val openArticle = {
-        val link = article.link
+        val link = SafeLinks.external(article.link)
         if (!link.isNullOrEmpty()) {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
             runCatching { context.startActivity(intent) }
-                .onFailure { Log.w("ArticleCard", "Cannot open link: $link") }
+                .onFailure { Log.w("ArticleCard", "Cannot open article link") }
         }
     }
     Card(
@@ -686,6 +678,7 @@ fun ArticleCard(article: Article) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),  // Pas d'ombre portee (sinon l'ombre grise mange le header)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
+            ApprovedImage(article.image)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Pastille categorie : couleur d'accent 8dp (scan visuel rapide)
                 val catColor = categoryColor(article.category)
@@ -768,7 +761,7 @@ fun ArticleCard(article: Article) {
  */
 private fun formatRelativeTime(timestamp: String?, pubDate: String?): String {
     // 1) Essayer le timestamp ISO interne (le plus fiable)
-    val date = parseNovaDate(timestamp) ?: parseRfc2822(pubDate) ?: return ""
+    val date = parseRfc2822(pubDate) ?: parseNovaDate(timestamp) ?: return pubDate.orEmpty()
 
     val now = System.currentTimeMillis()
     val diff = now - date.time
@@ -797,45 +790,9 @@ private fun formatRelativeTime(timestamp: String?, pubDate: String?): String {
     }
 }
 
-private fun parseNovaDate(iso: String?): java.util.Date? {
-    if (iso.isNullOrBlank()) return null
-    return try {
-        // Format: "2026-07-08T08:00:33.152009" (le LLM le fait deja dans l'app)
-        val cleaned = iso.replace("Z", "+00:00")
-        java.time.OffsetDateTime.parse(cleaned).toInstant().let { java.util.Date.from(it) }
-    } catch (e: Exception) {
-        try {
-            java.time.LocalDateTime.parse(iso).atZone(java.time.ZoneId.systemDefault()).toInstant()
-                .let { java.util.Date.from(it) }
-        } catch (e2: Exception) {
-            null
-        }
-    }
-}
+private fun parseNovaDate(iso: String?): java.util.Date? = reliableInstant(iso)?.let { java.util.Date.from(it) }
 
-private fun parseRfc2822(rfc: String?): java.util.Date? {
-    if (rfc.isNullOrBlank()) return null
-    // Format RSS typique: "Wed, 08 Jul 2026 05:52:29 GMT"
-    val months = arrayOf(
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    )
-    try {
-        // SimpleDateFormat thread-safe via synchronized
-        val sdf = java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", java.util.Locale.ENGLISH)
-        return sdf.parse(rfc)
-    } catch (e: Exception) {
-        // Try without leading day name
-        return try {
-            val parts = rfc.split(",", limit = 2)
-            val tail = if (parts.size == 2) parts[1].trim() else rfc
-            val sdf = java.text.SimpleDateFormat("dd MMM yyyy HH:mm:ss Z", java.util.Locale.ENGLISH)
-            sdf.parse(tail)
-        } catch (e2: Exception) {
-            null
-        }
-    }
-}
+private fun parseRfc2822(value: String?): java.util.Date? = reliableInstant(value)?.let { java.util.Date.from(it) }
 
 // ─── Onglet Radio ────────────────────────────────────────────────────────────
 
@@ -843,7 +800,9 @@ private fun parseRfc2822(rfc: String?): java.util.Date? {
 private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Boolean) {
     val context = LocalContext.current
     val activity = context as? androidx.activity.ComponentActivity
+    val radioStatus by player.status.collectAsState()
     val isPlaying by player.isPlaying.collectAsState()
+    val requested by player.requested.collectAsState()
 
     // PAS de DisposableEffect ici : le player est partage avec le RadioService
     // qui tourne en background. Si on release ici, on detruit le MediaController
@@ -884,7 +843,7 @@ private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Bo
         ) {
             FilledIconButton(
                 onClick = {
-                    if (isPlaying) {
+                    if (requested) {
                         player.pause()
                     } else if (isPremium) {
                         player.play()
@@ -902,8 +861,8 @@ private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Bo
                 )
             ) {
                 Icon(
-                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    if (requested) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = if (requested) "Pause" else "Play",
                     modifier = Modifier.size(40.dp),
                 )
             }
@@ -911,7 +870,7 @@ private fun RadioScreen(player: RadioPlayer, adManager: AdManager, isPremium: Bo
 
         Spacer(Modifier.height(16.dp))
         Text(
-            text = if (isPlaying) "En cours de lecture" else "Tapez pour lire",
+            text = if (isPlaying) "Lecture locale active" else "Radio : $radioStatus — appuyez pour lire",
             color = if (isPlaying) NovaAccentGreen else NovaTextMuted,
             style = MaterialTheme.typography.bodyMedium,
         )

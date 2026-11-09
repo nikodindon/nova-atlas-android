@@ -1,0 +1,21 @@
+{
+  "days": [
+    {
+      "articles": true,
+      "date": "20261108",
+      "editions": [],
+      "report": false
+    },
+    {
+      "articles": true,
+      "date": "20261106",
+      "editions": [],
+      "report": false
+    }
+  ],
+  "observed_at": "2026-11-08T20:29:34.692758+00:00",
+  "page": 1,
+  "per_page": 20,
+  "status": "ok",
+  "total": 2
+}
